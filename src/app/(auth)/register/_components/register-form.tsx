@@ -17,10 +17,12 @@ import {
   GraduationCap
 } from "lucide-react";
 import TextInput from "@/components/ui/form-fields/text-input";
+import LocationDropdown from "@/components/ui/form-fields/location-dropdown";
 import { Checkbox } from "@/components/ui/form-fields/checkbox";
 import { Button } from "@/components/ui/form-fields/button";
 import { cn } from "@/lib/utils";
 import { useRegisterForm } from "@/lib/hooks/Register/useRegisterForm";
+import { useLocationDropdown } from "@/lib/hooks/useLocationDropdown";
 
 export default function RegisterForm() {
   const {
@@ -418,86 +420,57 @@ export default function RegisterForm() {
         icon={<GraduationCap size={18} />}
         aria-label="Job Title"
       />      <div className="grid grid-cols-2 gap-4">
-        <div className="relative">
-          <select
-            id="region"
-            name="region"
-            value={formData.region}
-            onChange={handleChange}
-            className={cn(
-              'block w-full appearance-none rounded-md border-[1px] px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm',
-              'text-gray-900',
-              'focus:outline-none focus:ring-1 focus:ring-main-color focus:border-main-color',
-              errors.region
-                ? 'border-main-red text-red-900 placeholder-red-300 focus:ring-main-red focus:border-main-red'
-                : 'border-gray-300',
-              'disabled:cursor-not-allowed disabled:border-gray-200 disabled:bg-gray-50 disabled:text-gray-500'
-            )}
-            disabled={isLoading}
-            aria-label="Region"
-          >
-            <option value="">Region (Optional)</option>
-            <option value="NCR">National Capital Region</option>
-            <option value="CAR">Cordillera Administrative Region</option>
-            <option value="R1">Region I - Ilocos Region</option>
-            <option value="R2">Region II - Cagayan Valley</option>
-            <option value="R3">Region III - Central Luzon</option>
-            <option value="R4A">Region IV-A - CALABARZON</option>
-            <option value="MIMAROPA">MIMAROPA Region</option>
-            <option value="R5">Region V - Bicol Region</option>
-            <option value="R6">Region VI - Western Visayas</option>
-            <option value="R7">Region VII - Central Visayas</option>
-            <option value="R8">Region VIII - Eastern Visayas</option>
-            <option value="R9">Region IX - Zamboanga Peninsula</option>
-            <option value="R10">Region X - Northern Mindanao</option>
-            <option value="R11">Region XI - Davao Region</option>
-            <option value="R12">Region XII - SOCCSKSARGEN</option>
-            <option value="R13">Region XIII - Caraga</option>
-            <option value="BARMM">Bangsamoro Autonomous Region in Muslim Mindanao</option>
-          </select>
-          {errors.region && (
-            <p id="region-error" className="mt-1 text-[10px] sm:text-xs text-red-600">
-              {errors.region}
-            </p>
-          )}
-        </div>
+        <LocationDropdown
+          id="region"
+          name="region"
+          value={location.selectedRegion}
+          onChange={(value) => handleLocationChange('region', value)}
+          options={location.options.regions.map(r => ({ id: r.reg_id, name: r.name }))}
+          placeholder="Select Region"
+          disabled={isLoading}
+          required={true}
+          error={errors.region}
+          label="Region"
+        />
 
-        <TextInput
+        <LocationDropdown
           id="province"
           name="province"
-          type="text"
-          placeholder="Province (Optional)"
-          value={formData.province}
-          onChange={handleChange}
+          value={location.selectedProvince}
+          onChange={(value) => handleLocationChange('province', value)}
+          options={location.options.provinces.map(p => ({ id: p.prov_id, name: p.name }))}
+          placeholder="Select Province"
+          disabled={isLoading || !location.selectedRegion}
+          required={true}
           error={errors.province}
-          disabled={isLoading}
-          aria-label="Province"
+          label="Province"
         />
       </div>
 
       <div className="grid grid-cols-2 gap-4">
-        <TextInput
+        <LocationDropdown
           id="city"
           name="city"
-          type="text"
-          placeholder="City/Municipality (Optional)"
-          value={formData.city}
-          onChange={handleChange}
+          value={location.selectedCity}
+          onChange={(value) => handleLocationChange('city', value)}
+          options={location.options.cities.map(c => ({ id: c.city_id, name: c.name }))}
+          placeholder="Select City/Municipality"
+          disabled={isLoading || !location.selectedProvince}
+          required={true}
           error={errors.city}
-          disabled={isLoading}
-          aria-label="City or Municipality"
+          label="City/Municipality"
         />
 
-        <TextInput
+        <LocationDropdown
           id="barangay"
           name="barangay"
-          type="text"
-          placeholder="Barangay (Optional)"
-          value={formData.barangay}
-          onChange={handleChange}
+          value={location.selectedBarangay}
+          onChange={(value) => handleLocationChange('barangay', value)}
+          options={location.options.barangays.map(b => ({ id: b.brgy_id, name: b.name }))}
+          placeholder="Select Barangay (Optional)"
+          disabled={isLoading || !location.selectedCity}
           error={errors.barangay}
-          disabled={isLoading}
-          aria-label="Barangay"
+          label="Barangay"
         />
       </div>
 
@@ -517,6 +490,42 @@ export default function RegisterForm() {
       </div>
     </>
   );
+
+  // Location dropdown hook
+  const location = useLocationDropdown();
+
+  // Handle location changes and update form data
+  const handleLocationChange = (field: string, value: string) => {
+    // Update location state
+    switch (field) {
+      case 'region':
+        location.setSelectedRegion(value);
+        break;
+      case 'province':
+        location.setSelectedProvince(value);
+        break;
+      case 'city':
+        location.setSelectedCity(value);
+        break;
+      case 'barangay':
+        location.setSelectedBarangay(value);
+        break;
+    }
+    
+    // Update form data with the selected names
+    const names = location.getSelectedNames();
+    const event = {
+      target: {
+        name: field,
+        value: field === 'region' ? (location.options.regions.find(r => r.reg_id.toString() === value)?.name || '') :
+               field === 'province' ? (location.options.provinces.find(p => p.prov_id.toString() === value)?.name || '') :
+               field === 'city' ? (location.options.cities.find(c => c.city_id.toString() === value)?.name || '') :
+               field === 'barangay' ? (location.options.barangays.find(b => b.brgy_id.toString() === value)?.name || '') : ''
+      }
+    } as React.ChangeEvent<HTMLInputElement>;
+    
+    handleChange(event);
+  };
 
   return (
     <div className="w-full max-w-[95%] sm:max-w-md mx-auto px-4 sm:px-0">

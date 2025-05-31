@@ -128,8 +128,7 @@ export function useRegisterForm(onSubmit: (data: RegisterFormState) => Promise<v
       }
       if (!formData.address.trim()) {
         newErrors.address = 'Address is required';
-      }
-    } else if (step === 3) {
+      }    } else if (step === 3) {
       // Work information validation
       if (!formData.position) {
         newErrors.position = 'Position is required';
@@ -137,6 +136,18 @@ export function useRegisterForm(onSubmit: (data: RegisterFormState) => Promise<v
       if (!formData.jobTitle.trim()) {
         newErrors.jobTitle = 'Job title is required';
       }
+
+      // Location validation - Region, Province, City/Municipality are required
+      if (!formData.region.trim()) {
+        newErrors.region = 'Region is required';
+      }
+      if (!formData.province.trim()) {
+        newErrors.province = 'Province is required';
+      }
+      if (!formData.city.trim()) {
+        newErrors.city = 'City/Municipality is required';
+      }
+      // Barangay is optional - no validation needed
 
       if (!formData.termsAccepted) {
         newErrors.termsAccepted = 'You must accept the terms and conditions';
