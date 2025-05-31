@@ -1,0 +1,33 @@
+@layer components {
+  /* Custom styling for module containers */
+  .module-container {
+    @apply relative overflow-hidden;
+  }
+  
+  .module-container::before {
+    content: '';
+    @apply absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent to-transparent opacity-50;
+  }
+  
+  .module-container.highlight::before {
+    @apply from-gov-blue to-blue-300;
+  }
+  
+  .module-container.red::before {
+    @apply from-main-red to-red-300;
+  }
+  
+  .module-container.subdued::before {
+    @apply from-gray-400 to-gray-200;
+  }
+  
+  /* Custom styling for form headers */
+  .form-header {
+    @apply relative border-b pb-3 mb-4;
+  }
+  
+  .form-header::after {
+    content: '';
+    @apply absolute left-0 bottom-0 h-0.5 w-16 bg-gov-blue;
+  }
+}

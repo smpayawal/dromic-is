@@ -36,7 +36,6 @@ export function QuickActionsForm() {
       [field]: e.target.value
     }));
   };
-
   if (!isOpen) {
     return (
       <div className="flex justify-end mb-4">
@@ -44,27 +43,30 @@ export function QuickActionsForm() {
           onClick={() => setIsOpen(true)}
           variant="outline"
           size="sm"
-          className="flex items-center space-x-2"
+          className="flex items-center space-x-2 bg-white/80 hover:bg-white border-blue-400/20 hover:border-blue-400/40"
         >
-          <Plus className="h-4 w-4" />
-          <span>Add Quick Action</span>
+          <Plus className="h-4 w-4 text-blue-500" />
+          <span className="text-gray-700">Add Quick Action</span>
         </Button>
       </div>
     );
   }
 
   return (
-    <Card className="mb-6 border-gov-blue border-l-4">
-      <CardHeader>
+    <Card className="mb-6 bg-blue-50/30 border-0 shadow-sm">
+      <CardHeader className="form-header pb-4 border-gray-200">
         <CardTitle className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <Zap className="h-5 w-5 text-gov-blue" />
-            <span>Add Quick Action</span>
+            <div className="p-1.5 bg-blue-500/10 rounded-full">
+              <Zap className="h-5 w-5 text-blue-500" />
+            </div>
+            <span className="text-gray-800">Add Quick Action</span>
           </div>
           <Button
             onClick={() => setIsOpen(false)}
             variant="ghost"
             size="sm"
+            className="text-gray-400 hover:text-gray-600 hover:bg-gray-100/80"
           >
             <X className="h-4 w-4" />
           </Button>

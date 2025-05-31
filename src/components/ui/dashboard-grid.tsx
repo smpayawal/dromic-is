@@ -34,7 +34,7 @@ export function DashboardSection({
   return (
     <div className={cn("space-y-6", className)}>
       {(title || description) && (
-        <div className="space-y-2">
+        <div className="space-y-2 mb-6">
           {title && (
             <h2 className="text-2xl font-semibold text-gray-900 tracking-tight">
               {title}
@@ -47,7 +47,7 @@ export function DashboardSection({
           )}
         </div>
       )}
-      <div className="mt-6">
+      <div>
         {children}
       </div>
     </div>

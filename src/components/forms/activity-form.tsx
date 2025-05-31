@@ -46,7 +46,6 @@ export function ActivityForm() {
       default: return 'bg-gray-50 text-gray-700';
     }
   };
-
   if (!isOpen) {
     return (
       <div className="flex justify-end mb-4">
@@ -54,27 +53,30 @@ export function ActivityForm() {
           onClick={() => setIsOpen(true)}
           variant="outline"
           size="sm"
-          className="flex items-center space-x-2"
+          className="flex items-center space-x-2 bg-white/80 hover:bg-white border-red-400/20 hover:border-red-400/40"
         >
-          <Plus className="h-4 w-4" />
-          <span>Report Incident</span>
+          <Plus className="h-4 w-4 text-main-red" />
+          <span className="text-gray-700">Report Incident</span>
         </Button>
       </div>
     );
   }
 
   return (
-    <Card className="mb-6 border-main-red border-l-4">
-      <CardHeader>
+    <Card className="mb-6 bg-red-50/20 border-0 shadow-sm">
+      <CardHeader className="form-header pb-4 border-gray-200">
         <CardTitle className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <Activity className="h-5 w-5 text-main-red" />
-            <span>Report New Incident</span>
+            <div className="p-1.5 bg-main-red/10 rounded-full">
+              <Activity className="h-5 w-5 text-main-red" />
+            </div>
+            <span className="text-gray-800">Report New Incident</span>
           </div>
           <Button
             onClick={() => setIsOpen(false)}
             variant="ghost"
             size="sm"
+            className="text-gray-400 hover:text-gray-600 hover:bg-gray-100/80"
           >
             <X className="h-4 w-4" />
           </Button>

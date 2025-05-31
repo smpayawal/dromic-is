@@ -34,7 +34,6 @@ export function StatsForm() {
       [field]: parseInt(e.target.value) || 0
     }));
   };
-
   if (!isOpen) {
     return (
       <div className="flex justify-end mb-4">
@@ -42,27 +41,30 @@ export function StatsForm() {
           onClick={() => setIsOpen(true)}
           variant="outline"
           size="sm"
-          className="flex items-center space-x-2"
+          className="flex items-center space-x-2 bg-white/80 hover:bg-white border-gov-blue/20 hover:border-gov-blue/40"
         >
-          <Settings className="h-4 w-4" />
-          <span>Update Statistics</span>
+          <Settings className="h-4 w-4 text-gov-blue" />
+          <span className="text-gray-700">Manage Statistics</span>
         </Button>
       </div>
     );
   }
 
   return (
-    <Card className="mb-6 border-gov-blue border-l-4">
-      <CardHeader>
+    <Card className="mb-6 bg-gray-50/50 border-0 shadow-sm">
+      <CardHeader className="form-header pb-4 border-gray-200">
         <CardTitle className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <Settings className="h-5 w-5 text-gov-blue" />
-            <span>Update Statistics</span>
+            <div className="p-1.5 bg-gov-blue/10 rounded-full">
+              <Settings className="h-5 w-5 text-gov-blue" />
+            </div>
+            <span className="text-gray-800">Update Statistics</span>
           </div>
           <Button
             onClick={() => setIsOpen(false)}
             variant="ghost"
             size="sm"
+            className="text-gray-400 hover:text-gray-600 hover:bg-gray-100/80"
           >
             ×
           </Button>

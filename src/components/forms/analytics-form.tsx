@@ -63,7 +63,6 @@ export function AnalyticsForm() {
       [field]: checked
     }));
   };
-
   if (!isOpen) {
     return (
       <div className="flex justify-end mb-4">
@@ -71,27 +70,30 @@ export function AnalyticsForm() {
           onClick={() => setIsOpen(true)}
           variant="outline"
           size="sm"
-          className="flex items-center space-x-2"
+          className="flex items-center space-x-2 bg-white/80 hover:bg-white border-purple-400/20 hover:border-purple-400/40"
         >
-          <Filter className="h-4 w-4" />
-          <span>Configure Analytics</span>
+          <Filter className="h-4 w-4 text-purple-500" />
+          <span className="text-gray-700">Configure Analytics</span>
         </Button>
       </div>
     );
   }
 
   return (
-    <Card className="mb-6 border-gov-blue border-l-4">
-      <CardHeader>
+    <Card className="mb-6 bg-purple-50/20 border-0 shadow-sm">
+      <CardHeader className="form-header pb-4 border-gray-200">
         <CardTitle className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <BarChart3 className="h-5 w-5 text-gov-blue" />
-            <span>Analytics Configuration</span>
+            <div className="p-1.5 bg-purple-500/10 rounded-full">
+              <BarChart3 className="h-5 w-5 text-purple-500" />
+            </div>
+            <span className="text-gray-800">Analytics Configuration</span>
           </div>
           <Button
             onClick={() => setIsOpen(false)}
             variant="ghost"
             size="sm"
+            className="text-gray-400 hover:text-gray-600 hover:bg-gray-100/80"
           >
             <X className="h-4 w-4" />
           </Button>
