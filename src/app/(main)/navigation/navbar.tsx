@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Menu, X, User, Bell, Search, Globe, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useRouter } from 'next/navigation';
 
 // Placeholder for user data - replace with actual data fetching
 interface UserData {
@@ -13,10 +14,22 @@ interface UserData {
   avatarUrl?: string;
 }
 
+// Enhanced navigation link interface with dropdown support
+interface NavLink {
+  href: string;
+  label: string;
+  shortLabel: string;
+  hasDropdown: boolean;
+  icon?: React.ElementType;
+  dropdownItems?: Array<{ href: string; label: string; icon?: React.ElementType }>;
+}
+
 const Navbar: React.FC = () => {  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [user, setUser] = useState<UserData | null>(null); // State for user data
   const [activePath, setActivePath] = useState('');
+  const [openDropdown, setOpenDropdown] = useState<string | null>(null); // State for main nav dropdown
+  const router = useRouter();
 
   // Get active path for link styling
   useEffect(() => {
@@ -33,40 +46,70 @@ const Navbar: React.FC = () => {  const [isMobileMenuOpen, setIsMobileMenuOpen] 
       setUser({ name: 'admin adminddd', role: 'Admin', avatarUrl: '/AGAPP.png' }); // Updated example user
     }, 500);
     return () => clearTimeout(timer); // Cleanup timer
-  }, []);
-  const toggleMobileMenu = () => {
+  }, []);  const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
   };
 
   const toggleProfileMenu = () => {
     setIsProfileOpen(!isProfileOpen);
   };
-  // Close profile menu if clicking outside
+  const toggleMainDropdown = (href: string) => {
+    setOpenDropdown(prev => (prev === href ? null : href));
+  };
+  const handleNavKeyDown = (e: React.KeyboardEvent, link: NavLink) => {
+    if (link.hasDropdown && (e.key === 'Enter' || e.key === ' ')) {
+      e.preventDefault();
+      toggleMainDropdown(link.href);
+    } else if (e.key === 'Escape' && openDropdown) {
+      setOpenDropdown(null);
+    }
+  };
+
+  // Check if any dropdown item is active for a parent nav item
+  const isParentActive = (link: NavLink) => {
+    if (!link.hasDropdown || !link.dropdownItems) return false;
+    return link.dropdownItems.some(item => activePath.startsWith(item.href));
+  };// Close profile menu and main dropdowns if clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
+      // On mobile, allow dropdown toggle without closing on outside click
+      if (window.innerWidth < 768) return;
       const profileMenu = document.getElementById('profile-menu');
       const profileButton = document.getElementById('profile-button');
-      const mobileProfileMenu = document.getElementById('mobile-profile-menu'); // Get mobile menu element
-      const mobileProfileButton = document.getElementById('mobile-profile-button'); // Get mobile button element
+      const mobileProfileMenu = document.getElementById('mobile-profile-menu');
+      const mobileProfileButton = document.getElementById('mobile-profile-button');
 
-      // Check clicks outside both desktop and mobile menus and buttons
-      if (
+      // Check if click is outside profile elements
+      const isOutsideProfile = 
         (profileMenu && !profileMenu.contains(event.target as Node)) &&
         (profileButton && !profileButton.contains(event.target as Node)) &&
-        (mobileProfileMenu && !mobileProfileMenu.contains(event.target as Node)) && // Check mobile menu
-        (mobileProfileButton && !mobileProfileButton.contains(event.target as Node)) // Check mobile button
-      ) {
+        (mobileProfileMenu && !mobileProfileMenu.contains(event.target as Node)) &&
+        (mobileProfileButton && !mobileProfileButton.contains(event.target as Node));
+
+      if (isOutsideProfile) {
         setIsProfileOpen(false);
+      }
+
+      // Check if click is outside any main navigation dropdown
+      if (openDropdown) {
+        const activeDropdown = document.getElementById(`dropdown-${openDropdown.replace('/', '-')}`);
+        const activeButton = document.getElementById(`button-${openDropdown.replace('/', '-')}`);
+        
+        if (activeDropdown && activeButton &&
+            !activeDropdown.contains(event.target as Node) &&
+            !activeButton.contains(event.target as Node)) {
+          setOpenDropdown(null);
+        }
       }
     };
 
-    if (isProfileOpen) {
+    if (isProfileOpen || openDropdown) {
         document.addEventListener('mousedown', handleClickOutside);
     }
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [isProfileOpen]);
+  }, [isProfileOpen, openDropdown]);
 
   // Placeholder logout handler
   const handleLogout = async () => {
@@ -76,7 +119,7 @@ const Navbar: React.FC = () => {  const [isMobileMenuOpen, setIsMobileMenuOpen] 
     setIsProfileOpen(false);
     setUser(null); // Clear user state
     // Potentially redirect: window.location.href = '/login';
-  };  const navLinksConfig = [
+  };  const navLinksConfig: NavLink[] = [
     { 
       href: '/dashboard', 
       label: 'Dashboard',
@@ -87,40 +130,48 @@ const Navbar: React.FC = () => {  const [isMobileMenuOpen, setIsMobileMenuOpen] 
       href: '/reports', 
       label: 'Reports and Analytics',
       shortLabel: 'Reports', 
-      hasDropdown: true 
+      hasDropdown: true,
+      dropdownItems: [
+        { href: '/reports/incidents', label: 'Incident Reports' },
+        { href: '/reports/summary', label: 'Summary Reports' },
+        { href: '/reports/analytics', label: 'Data Analytics' },
+        { href: '/reports/trends', label: 'Trend Analysis' },
+      ]
     },
     { 
       href: '/dromic-matrix', 
       label: 'DROMIC Matrix',
       shortLabel: 'Matrix',
-      hasDropdown: true 
+      hasDropdown: true,
+      dropdownItems: [
+        { href: '/dromic-matrix/view', label: 'View Matrix' },
+        { href: '/dromic-matrix/create', label: 'Create Entry' },
+        { href: '/dromic-matrix/manage', label: 'Manage Data' },
+      ]
     },
     { 
       href: '/account-management', 
       label: 'Account Management',
       shortLabel: 'Accounts',
-      hasDropdown: true 
+      hasDropdown: true,
+      dropdownItems: [
+        { href: '/account-management/users', label: 'User Accounts' },
+        { href: '/account-management/roles', label: 'Roles & Permissions' },
+        { href: '/account-management/audit', label: 'Audit Logs' },
+      ]
     },
     { 
       href: '/address-management', 
       label: 'Address Management',
       shortLabel: 'Address',
-      hasDropdown: true 
-    },
-  ];
+      hasDropdown: true,
+      dropdownItems: [
+        { href: '/address-management/locations', label: 'Manage Locations' },
+        { href: '/address-management/mapping', label: 'Address Mapping' },
+        { href: '/address-management/validation', label: 'Data Validation' },
+      ]
+    },  ];
 
-  // Split navLinks for left/right (keeping existing logic)
-  const navLinks = [
-    { href: '/dashboard', label: 'Dashboard' },
-    { href: '/reports', label: 'Reports' },
-    { href: '/manage', label: 'Manage Data' },
-    { href: '/services', label: 'Services' },
-    { href: '/transparency', label: 'Transparency' },
-  ];
-
-  // Split navLinks for left/right
-  const leftLinks = navLinks.slice(0, Math.ceil(navLinks.length / 2));
-  const rightLinks = navLinks.slice(Math.ceil(navLinks.length / 2));
   return (
     <>
       {/* New Top Header (White Background) */}
@@ -251,26 +302,73 @@ const Navbar: React.FC = () => {  const [isMobileMenuOpen, setIsMobileMenuOpen] 
         </div>
       </header>      {/* New Bottom Navigation Bar (Dark Blue Background) */}
       <nav className="bg-gov-blue text-white print:hidden shadow-lg sticky top-16 md:top-20 z-30">        <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
-          <div className="flex items-center justify-between md:justify-center h-14 md:h-16">{/* Desktop/Tablet Navigation Links */}
+          <div className="flex items-center justify-between md:justify-center h-14 md:h-16">            {/* Desktop/Tablet Navigation Links */}
             <div className="hidden md:flex md:items-center md:space-x-1 lg:space-x-2 xl:space-x-3">
               {navLinksConfig.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className={cn(
-                    // Adjusted for small laptop (lg) to prevent overlap
-                    "whitespace-nowrap px-2 md:px-3 lg:px-3 xl:px-5 py-2 md:py-2.5 rounded-md text-sm md:text-base lg:text-sm xl:text-base font-medium transition duration-150 ease-in-out hover:bg-gov-blue-light focus:outline-none focus:ring-2 focus:ring-gov-yellow flex items-center space-x-1 min-h-[42px]",
-                    activePath === link.href
-                      ? 'bg-gov-blue-light text-gov-yellow'
-                      : 'text-gray-200 hover:text-white'
+                <div key={link.href} className="relative">
+                  {link.hasDropdown ? (
+                    <button
+                      id={`button-${link.href.replace('/', '-')}`}
+                      onClick={() => toggleMainDropdown(link.href)}
+                      onKeyDown={(e) => handleNavKeyDown(e, link)}
+                      aria-haspopup="true"
+                      aria-expanded={openDropdown === link.href}                      className={cn(
+                        "whitespace-nowrap px-2 md:px-3 lg:px-3 xl:px-5 py-2 md:py-2.5 rounded-md text-sm md:text-base lg:text-sm xl:text-base font-medium transition duration-150 ease-in-out hover:bg-gov-blue-light focus:outline-none focus:ring-2 focus:ring-gov-yellow flex items-center space-x-1 min-h-[42px]",
+                        openDropdown === link.href || isParentActive(link)
+                          ? 'bg-gov-blue-light text-gov-yellow'
+                          : 'text-gray-200 hover:text-white'
+                      )}
+                    >
+                      <span className="truncate hidden md:block lg:hidden">{link.shortLabel}</span>
+                      <span className="truncate hidden lg:block">{link.label}</span>
+                      <ChevronDown className={cn(
+                        "h-4 w-4 md:h-4 md:w-4 lg:h-4 lg:w-4 xl:h-5 xl:w-5 flex-shrink-0 ml-1 transition-transform duration-200",
+                        openDropdown === link.href ? 'rotate-180' : ''
+                      )} />
+                    </button>
+                  ) : (
+                    <Link
+                      href={link.href}
+                      className={cn(
+                        "whitespace-nowrap px-2 md:px-3 lg:px-3 xl:px-5 py-2 md:py-2.5 rounded-md text-sm md:text-base lg:text-sm xl:text-base font-medium transition duration-150 ease-in-out hover:bg-gov-blue-light focus:outline-none focus:ring-2 focus:ring-gov-yellow flex items-center space-x-1 min-h-[42px]",
+                        activePath === link.href
+                          ? 'bg-gov-blue-light text-gov-yellow'
+                          : 'text-gray-200 hover:text-white'
+                      )}
+                      aria-current={activePath === link.href ? 'page' : undefined}
+                    >
+                      <span className="truncate hidden md:block lg:hidden">{link.shortLabel}</span>
+                      <span className="truncate hidden lg:block">{link.label}</span>
+                    </Link>
                   )}
-                  aria-current={activePath === link.href ? 'page' : undefined}
-                >
-                  {/* Use short label on md (tablet) and long label on lg+ (desktop) */}
-                  <span className="truncate hidden md:block lg:hidden">{link.shortLabel}</span>
-                  <span className="truncate hidden lg:block">{link.label}</span>
-                  {link.hasDropdown && <ChevronDown className="h-4 w-4 md:h-4 md:w-4 lg:h-4 lg:w-4 xl:h-5 xl:w-5 flex-shrink-0 ml-1" />}
-                </Link>
+                  
+                  {/* Dropdown Menu */}
+                  {link.hasDropdown && openDropdown === link.href && (
+                    <div
+                      id={`dropdown-${link.href.replace('/', '-')}`}
+                      className="origin-top-left absolute left-0 mt-2 w-56 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-50 border border-dashboard-border"
+                      role="menu"
+                      aria-orientation="vertical"
+                      aria-labelledby={`button-${link.href.replace('/', '-')}`}
+                    >
+                      {link.dropdownItems?.map(item => (                        <Link
+                          key={item.href}
+                          href={item.href}
+                          className={cn(
+                            "block px-4 py-3 text-sm transition duration-150 ease-in-out min-h-[44px] flex items-center",
+                            activePath === item.href
+                              ? "bg-gov-blue text-white font-medium"
+                              : "text-dashboard-text-primary hover:bg-gray-100 hover:text-dashboard-text-primary"
+                          )}
+                          role="menuitem"
+                          onClick={() => setOpenDropdown(null)}
+                        >
+                          {item.label}
+                        </Link>
+                      ))}
+                    </div>
+                  )}
+                </div>
               ))}
             </div>
 
@@ -295,26 +393,78 @@ const Navbar: React.FC = () => {  const [isMobileMenuOpen, setIsMobileMenuOpen] 
               </span>
             </div>
           </div>
-        </div>
-
-        {/* Mobile menu */}
+        </div>        {/* Mobile menu */}
         <div className={cn("md:hidden border-t border-gov-blue-light", isMobileMenuOpen ? 'block' : 'hidden')} id="mobile-menu">
-          <div className="px-4 pt-3 pb-4 space-y-2">
+          <div className="px-4 pt-3 pb-4 space-y-1">
             {navLinksConfig.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={cn(
-                  "block px-4 py-3 rounded-md text-base font-medium transition duration-150 ease-in-out hover:bg-gov-blue-light focus:outline-none focus:ring-2 focus:ring-gov-yellow flex items-center justify-between min-h-[48px]",
-                   activePath === link.href
-                    ? 'bg-gov-blue-light text-gov-yellow'
-                    : 'text-gray-200 hover:text-white'
+              <div key={link.href}>
+                {link.hasDropdown ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      // Toggle dropdown: close if open, open if closed
+                      if (openDropdown === link.href) {
+                        setOpenDropdown(null);
+                      } else {
+                        setOpenDropdown(link.href);
+                      }
+                    }}
+                    className={cn(
+                      "w-full text-left px-4 py-3 rounded-md text-base font-medium transition duration-150 ease-in-out hover:bg-gov-blue-light focus:outline-none focus:ring-2 focus:ring-gov-yellow flex items-center justify-between min-h-[48px]",
+                      openDropdown === link.href || isParentActive(link)
+                        ? 'bg-gov-blue-light text-gov-yellow'
+                        : 'text-gray-200 hover:text-white'
+                    )}
+                    aria-expanded={openDropdown === link.href}
+                  >
+                    <span className="truncate">{link.label}</span>
+                    <ChevronDown className={cn(
+                      "h-5 w-5 flex-shrink-0 transition-transform duration-200",
+                      openDropdown === link.href ? 'rotate-180' : ''
+                    )} />
+                  </button>
+                ) : (
+                  <Link
+                    href={link.href}
+                    className={cn(
+                      "block px-4 py-3 rounded-md text-base font-medium transition duration-150 ease-in-out hover:bg-gov-blue-light focus:outline-none focus:ring-2 focus:ring-gov-yellow flex items-center justify-between min-h-[48px]",
+                      activePath === link.href
+                        ? 'bg-gov-blue-light text-gov-yellow'
+                        : 'text-gray-200 hover:text-white'
+                    )}
+                    aria-current={activePath === link.href ? 'page' : undefined}
+                    onClick={() => {
+                      setIsMobileMenuOpen(false);
+                      setOpenDropdown(null);
+                    }}
+                  >
+                    <span className="truncate">{link.label}</span>
+                  </Link>
                 )}
-                aria-current={activePath === link.href ? 'page' : undefined}
-                onClick={() => setIsMobileMenuOpen(false)}
-              >                <span className="truncate">{link.label}</span>
-                {link.hasDropdown && <ChevronDown className="h-4 w-4 flex-shrink-0" />}
-              </Link>
+                
+                {/* Mobile Dropdown Items */}
+                {link.hasDropdown && openDropdown === link.href && (
+                  <div className="pl-4 mt-1 space-y-1 border-l-2 border-gov-blue-light ml-4">
+                    {link.dropdownItems?.map(item => (                      <Link
+                        key={item.href}
+                        href={item.href}
+                        className={cn(
+                          "block px-4 py-2 rounded-md text-sm font-medium transition duration-150 ease-in-out min-h-[44px] flex items-center",
+                          activePath === item.href
+                            ? "bg-gov-blue-light text-gov-yellow"
+                            : "text-gray-300 hover:bg-gov-blue-light hover:text-white"
+                        )}
+                        onClick={() => {
+                          setIsMobileMenuOpen(false);
+                          setOpenDropdown(null);
+                        }}
+                      >
+                        {item.label}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
             ))}
           </div>
         </div>
