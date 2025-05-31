@@ -6,12 +6,20 @@ import Image from 'next/image';
 import { Menu, X, User, Bell, Search, Globe, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
+import ProfileDropdown from './components/ProfileDropdown';
 
 // Placeholder for user data - replace with actual data fetching
 interface UserData {
   name: string;
   role?: string; // Add role
   avatarUrl?: string;
+  // Add new fields for location and organizational details
+  region?: string;
+  province?: string;
+  municipality?: string;
+  barangay?: string;
+  position?: string;
+  jobTitle?: string;
 }
 
 // Enhanced navigation link interface with dropdown support
@@ -36,17 +44,26 @@ const Navbar: React.FC = () => {  const [isMobileMenuOpen, setIsMobileMenuOpen] 
     if (typeof window !== 'undefined') {
       setActivePath(window.location.pathname);
     }
-  }, []);
-  // Placeholder: Fetch user data on component mount
+  }, []);  // Placeholder: Fetch user data on component mount
   useEffect(() => {
     // const session = getUserSession(); // Replace with your actual auth logic
     // if (session?.isLoggedIn) { setUser(session.user); }
     // Simulating fetching user data
     const timer = setTimeout(() => {
-      setUser({ name: 'admin adminddd', role: 'Admin', avatarUrl: '/AGAPP.png' }); // Updated example user
+      setUser({ 
+        name: 'admin adminddd', 
+        role: 'Admin', 
+        avatarUrl: '/AGAPP.png',
+        position: 'Regional Director', // Example data
+        jobTitle: 'Lead Operations Officer', // Example data
+        region: 'NCR', // Example data
+        province: 'Metro Manila', // Example data
+        municipality: 'Quezon City', // Example data
+        barangay: 'Diliman' // Example data
+      }); // Updated example user
     }, 500);
     return () => clearTimeout(timer); // Cleanup timer
-  }, []);  const toggleMobileMenu = () => {
+  }, []);const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
   };
 
@@ -69,12 +86,12 @@ const Navbar: React.FC = () => {  const [isMobileMenuOpen, setIsMobileMenuOpen] 
   const isParentActive = (link: NavLink) => {
     if (!link.hasDropdown || !link.dropdownItems) return false;
     return link.dropdownItems.some(item => activePath.startsWith(item.href));
-  };// Close profile menu and main dropdowns if clicking outside
+  };  // Close profile menu and main dropdowns if clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       // On mobile, allow dropdown toggle without closing on outside click
       if (window.innerWidth < 768) return;
-      const profileMenu = document.getElementById('profile-menu');
+      const profileMenu = document.getElementById('profile-menu-dropdown');
       const profileButton = document.getElementById('profile-button');
       const mobileProfileMenu = document.getElementById('mobile-profile-menu');
       const mobileProfileButton = document.getElementById('mobile-profile-button');
@@ -217,15 +234,14 @@ const Navbar: React.FC = () => {  const [isMobileMenuOpen, setIsMobileMenuOpen] 
               </button>
 
               {/* User Profile Dropdown */}
-              <div className="relative">
-                <button
+              <div className="relative">                <button
                   id="profile-button"
                   type="button"
                   onClick={toggleProfileMenu}
                   className="flex items-center space-x-2 text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gov-blue min-w-[44px] min-h-[44px]"
                   aria-expanded={isProfileOpen}
                   aria-haspopup="true"
-                  aria-controls="profile-menu"
+                  aria-controls="profile-menu-dropdown"
                 >
                   <span className="sr-only">Open user menu</span>
                   {user?.avatarUrl ? (
@@ -244,58 +260,33 @@ const Navbar: React.FC = () => {  const [isMobileMenuOpen, setIsMobileMenuOpen] 
                     </span>
                   )}
                   <div className="hidden lg:flex flex-col items-start min-w-0">
-                    <span className="font-medium text-gray-800 text-sm truncate max-w-[120px]">
+                    {/* Full Name */}
+                    <span className="font-semibold text-gray-900 text-sm truncate max-w-[180px]">
                       {user?.name || 'User'}
                     </span>
-                    <span className="text-xs text-gray-500 truncate max-w-[120px]">
-                      {user?.role || 'Role'}
-                    </span>
+                    {/* Position only */}
+                    {user?.position && (
+                      <span className="text-xs text-gray-700 truncate max-w-[180px]">
+                        {user.position}
+                      </span>
+                    )}
+                    {/* Location: Province, Municipality */}
+                    {(user?.province || user?.municipality) && (
+                      <span className="text-xs text-gray-500 truncate max-w-[180px]">
+                        {user?.province}
+                        {user?.province && user?.municipality ? ', ' : ''}{user?.municipality}
+                      </span>
+                    )}
                   </div>
-                  <ChevronDown className="h-4 w-4 text-gray-500 hidden lg:block flex-shrink-0" />
-                </button>                {/* Dropdown Menu */}
-                <div
-                  id="profile-menu"
-                  className={cn(
-                    "origin-top-right absolute right-0 mt-2 w-56 sm:w-64 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 focus:outline-none transition ease-out duration-100 transform z-50",
-                    isProfileOpen ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'
-                  )}
-                  role="menu"
-                  aria-orientation="vertical"
-                  aria-labelledby="profile-button"
-                  style={{ right: '0', maxWidth: 'calc(100vw - 32px)' }}
-                >
-                  <div className="px-4 py-3 text-sm text-gray-700 border-b lg:hidden">
-                    <div className="font-medium truncate">{user?.name || 'User'}</div>
-                    <div className="text-xs text-gray-500 truncate">{user?.role || 'Role'}</div>
-                  </div>
-                  <Link
-                    href="/profile"
-                    className="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 min-h-[44px] flex items-center"
-                    role="menuitem"
-                    onClick={() => setIsProfileOpen(false)}
-                  >
-                    Your Profile
-                  </Link>
-                  <Link
-                    href="/settings"
-                    className="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 min-h-[44px] flex items-center"
-                    role="menuitem"
-                    onClick={() => setIsProfileOpen(false)}
-                  >
-                    Settings
-                  </Link>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      handleLogout();
-                      setIsProfileOpen(false);
-                    }}
-                    className="block w-full text-left px-4 py-3 text-sm text-main-red hover:bg-red-50 min-h-[44px] flex items-center"
-                    role="menuitem"
-                  >
-                    Sign out
-                  </button>
-                </div>
+                  <ChevronDown className="h-4 w-4 text-gray-500 hidden lg:block flex-shrink-0" />                </button>
+
+                {/* Use the new ProfileDropdown component */}
+                <ProfileDropdown 
+                  user={user} 
+                  isOpen={isProfileOpen} 
+                  onClose={() => setIsProfileOpen(false)} 
+                  onLogout={handleLogout} 
+                />
               </div>
             </div>
           </div>
