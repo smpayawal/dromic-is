@@ -45,6 +45,8 @@ DROMIC-IS is a comprehensive web-based information system designed for disaster 
 
 ### Target Users
 
+Enhanced with comprehensive position management and location-aware functionality:
+
 - **Super Admin (SA)**: System-wide administrator with complete control over all functionalities
 - **Admin**: Administrative personnel managing system configuration and user access
 - **Secretary**: Executive-level official overseeing departmental operations
@@ -53,15 +55,17 @@ DROMIC-IS is a comprehensive web-based information system designed for disaster 
 - **Central Officer (CO)**: National-level coordinator handling centralized operations
 - **Field Officer (FO)**: On-ground personnel collecting and reporting disaster response data
 - **Local Government Unit (LGU)**: Municipal and provincial disaster response coordinators
+- **Team Leader**: Project and team coordination personnel
 
 ## ✨ Features
 
 ### 🔐 Comprehensive Authentication System
-- **Multi-step Registration**: 3-step progressive registration with validation
-- **Secure Login**: Username/password authentication with remember me functionality
+- **Multi-step Registration**: 3-step progressive registration with comprehensive validation
+- **Dual Login Support**: Email/username authentication with secure password validation
+- **Location Integration**: Philippine PSGC-compliant cascading location dropdowns
 - **Password Recovery**: Multi-step password reset with email verification simulation
-- **Role-based Access Control**: Support for 4 distinct user roles with appropriate permissions
-- **Session Management**: Client-side token management with localStorage persistence
+- **Role-based Access Control**: Support for 9 distinct user positions with appropriate permissions
+- **Session Management**: JWT-based authentication with HTTP-only cookies and localStorage preferences
 
 ### 📊 Interactive Dashboard & Analytics
 - **Real-time Statistics**: Dynamic statistics cards with live data updates
@@ -73,13 +77,18 @@ DROMIC-IS is a comprehensive web-based information system designed for disaster 
 - **Quick Actions Hub**: Streamlined access to frequently used functions
 - **Activity Monitoring**: Real-time tracking of system activities and user interactions
 
-### 🗺️ DROMIC Matrix Management
+### 🗺️ Philippine Geographic Information System (PSGC Integration)
+- **Cascading Location Dropdowns**: Real-time filtering of Region → Province → City/Municipality → Barangay
+- **PSGC 2023 Q1 Data**: Complete Philippine Standard Geographic Code implementation
+- **Required Location Fields**: Region, Province, and City/Municipality validation
+- **Optional Barangay Selection**: Enhanced location specificity without mandatory requirement
+- **Data Integrity**: 546,000+ barangays with proper parent-child relationships
+
+### �️ DROMIC Matrix Management
 - **Matrix Data View**: Specialized interface for DROMIC data visualization and management
 - **Advanced Filtering**: Multi-criteria filtering and search capabilities
 - **Data Export**: Export functionality for reports and data sharing
-
 ### 📈 Comprehensive Reporting System
-- **Incident Reports**: Detailed incident tracking with categorization and status updates
 - **Summary Reports**: High-level analytics and performance overviews
 - **Custom Analytics**: Configurable data analysis tools
 - **Export Capabilities**: Multiple format support for data export
@@ -119,6 +128,12 @@ DROMIC-IS is a comprehensive web-based information system designed for disaster 
   "tailwind-merge": "^3.2.0"           // Tailwind class conflict resolution
 }
 ```
+
+### Philippine Geographic Data (PSGC 2023 Q1)
+- **Regions Data**: Complete 17 regions including NCR, CAR, and BARMM
+- **Provinces Data**: 81 provinces with proper regional associations
+- **Cities/Municipalities**: 1,634 cities and municipalities with income classifications  
+- **Barangays Data**: 42,046 barangays with urban/rural classifications and parent relationships
 
 ## 🚀 Quick Start
 
@@ -171,12 +186,13 @@ Git       ≥ 2.0.0
 
 ### Demo Credentials
 
-For immediate testing and demonstration, create new accounts through the registration system:
+For immediate testing and demonstration, create new accounts through the enhanced registration system:
 
 **Registration Process:**
 1. Navigate to `/register` 
-2. Complete the 3-step registration form
+2. Complete the 3-step registration form with location selection
 3. Select from available positions: Super Admin, Admin, Secretary, Director, Regional Director, Central Officer, Field Officer, Local Government Unit, Team Leader
+4. Choose your location using cascading dropdowns (Region → Province → City/Municipality → Barangay)
 
 **Login Options After Registration:**
 - Login with your registered email address
@@ -184,11 +200,12 @@ For immediate testing and demonstration, create new accounts through the registr
 - Both options use the same password you set during registration
 
 **Authentication Features:**
-- ✅ Register new accounts via `/register` with comprehensive profile creation
+- ✅ Register new accounts via `/register` with comprehensive profile creation and Philippine location integration
 - ✅ Login with email or username via `/login` for maximum user convenience
 - ✅ Secure session management with JWT tokens and HTTP-only cookies
 - ✅ Profile data stored in PostgreSQL database with full transaction safety
 - ✅ Real-time validation and user-friendly error handling
+- ✅ Philippine PSGC 2023 Q1 location data integration with cascading dropdowns
 
 > **🔒 Security Note**: All authentication is database-backed with bcrypt password hashing, JWT session tokens, and production-ready security measures.
 
@@ -271,20 +288,28 @@ dromic-is/
 │   │       └── 📁 form-fields/     # Form input components
 │   │           ├── button.tsx       # Standardized button component
 │   │           ├── checkbox.tsx     # Checkbox input component
+│   │           ├── location-dropdown.tsx # Philippine location cascading dropdown (NEW)
 │   │           └── text-input.tsx   # Text input with validation
 │   └── 📁 lib/                     # Utility libraries and business logic
 │       ├── 📁 utils/               # Core utility functions
 │       │   ├── auth.ts             # Authentication utilities (UPDATED)
 │       │   ├── jwt.ts              # JWT token management (NEW)
+│       │   ├── location.ts         # Philippine PSGC location utilities (NEW)
 │       │   ├── password.ts         # Password hashing utilities (NEW)
 │       │   └── validation.ts       # Zod validation schemas (NEW)
+│       ├── 📁 data/               # Philippine Geographic Data (NEW)
+│       │   ├── psgc_regions_1q23.json    # Philippine regions (17 regions)
+│       │   ├── psgc_provinces_1q23.json  # Philippine provinces (81 provinces)
+│       │   ├── psgc_cities_1q23.json     # Cities/municipalities (1,634 entries)
+│       │   └── psgc_barangays_1q23.json  # Barangays (42,046 entries)
 │       ├── db.ts                   # Database connection utility (NEW)
 │       ├── utils.ts                # General utility functions
 │       ├── 📁 hooks/              # Custom React hooks
+│       │   ├── useLocationDropdown.ts # Location dropdown state management (NEW)
 │       │   ├── Login/             # Login-related hooks
-│       │   │   └── useLoginForm.ts
+│       │   │   └── useLoginForm.ts # Updated with email/username support
 │       │   └── Register/          # Registration hooks
-│       │       └── useRegisterForm.ts
+│       │       └── useRegisterForm.ts # Updated with location validation
 │       └── 📁 api/                # API integration utilities (placeholder)
 ├── 📁 Configuration Files
 ├── .env.local                      # Environment variables (NEW)
@@ -412,17 +437,17 @@ interface PersonalInfo {
 }
 ```
 
-#### Step 3: Work Information
+#### Step 3: Work Information with Philippine Location Integration
 ```typescript
 interface WorkInfo {
-  position: 'SA' | 'ADM' | 'Sec' | 'Dir' | 'RD' | 'CO' | 'FO' | 'LGU'; // Required role selection
+  position: 'SA' | 'ADM' | 'Sec' | 'Dir' | 'RD' | 'CO' | 'FO' | 'LGU' | 'TL'; // 9 distinct positions including Team Leader
   jobTitle: string;        // Required job title
   division?: string;       // Optional organizational unit
-  region?: string;         // Philippine region selection
-  province?: string;       // Province information
-  city?: string;          // City/Municipality
-  barangay?: string;      // Barangay information
-  termsAccepted: boolean; // Required terms acceptance
+  region: string;          // Required - Philippine region (PSGC 2023 Q1)
+  province: string;        // Required - Province within selected region
+  city: string;            // Required - City/Municipality within province
+  barangay?: string;       // Optional - Barangay within city/municipality
+  termsAccepted: boolean;  // Required terms acceptance
 }
 // Valid position values: "Super Admin", "Admin", "Secretary", "Director", 
 // "Regional Director", "Central Officer", "Field Officer", "Local Government Unit", "Team Leader"
@@ -497,17 +522,16 @@ Register a new user account with profile information.
   middleInitial?: string;
   dateOfBirth: string;
   phoneNumber: string;
-  address: string;
-    // Work Information
+  address: string;    // Work Information with Philippine Location Integration
   position: string; // Must be one of the predefined user levels (see UserLevelEnum)
   // Valid position values: "Super Admin", "Admin", "Secretary", "Director", 
   // "Regional Director", "Central Officer", "Field Officer", "Local Government Unit", "Team Leader"
   division?: string;
   jobTitle: string;
-  region?: string;
-  province?: string;
-  city?: string;
-  barangay?: string;
+  region: string;    // Required - Philippine region (PSGC 2023 Q1)
+  province: string;  // Required - Province within selected region
+  city: string;      // Required - City/Municipality within province
+  barangay?: string; // Optional - Barangay within city/municipality
   termsAccepted: boolean;
 }
 ```
@@ -785,6 +809,37 @@ logoutUser(): Promise<void>
 
 ### Component APIs
 
+#### Location Management (NEW)
+```typescript
+// Location Utilities
+interface LocationData {
+  code: string;
+  name: string;
+  regionCode?: string;
+  provinceCode?: string;
+  cityCode?: string;
+}
+
+// Location Hook
+interface UseLocationDropdownReturn {
+  regions: LocationData[];
+  provinces: LocationData[];
+  cities: LocationData[];
+  barangays: LocationData[];
+  isLoading: boolean;
+  loadProvinces: (regionCode: string) => Promise<void>;
+  loadCities: (provinceCode: string) => Promise<void>;
+  loadBarangays: (cityCode: string) => Promise<void>;
+  resetDependentFields: (type: 'region' | 'province' | 'city') => void;
+}
+
+// Location Utils Functions
+getRegions(): Promise<LocationData[]>
+getProvincesByRegion(regionCode: string): Promise<LocationData[]>
+getCitiesByProvince(provinceCode: string): Promise<LocationData[]>
+getBarangaysByCity(cityCode: string): Promise<LocationData[]>
+```
+
 #### Form Components
 ```typescript
 // TextInput Component
@@ -801,6 +856,25 @@ interface TextInputProps {
   rightElement?: React.ReactNode;
   required?: boolean;
   autoComplete?: string;
+  'aria-label'?: string;
+}
+
+// LocationDropdown Component (NEW)
+interface LocationDropdownProps {
+  id: string;
+  name: string;
+  placeholder: string;
+  value: string;
+  onChange: (value: string) => void;
+  error?: string;
+  disabled?: boolean;
+  type: 'region' | 'province' | 'city' | 'barangay';
+  dependsOn?: {
+    region?: string;
+    province?: string;
+    city?: string;
+  };
+  required?: boolean;
   'aria-label'?: string;
 }
 ```
@@ -824,11 +898,11 @@ interface UserData {
   name: string;
   role?: string;
   avatarUrl?: string;
-  region?: string;
-  province?: string;
-  municipality?: string;
-  barangay?: string;
-  position?: string;
+  region?: string;     // Philippine region (PSGC 2023 Q1)
+  province?: string;   // Province within region
+  city?: string;       // City/Municipality within province
+  barangay?: string;   // Barangay within city/municipality (optional)
+  position?: string;   // User position/role
   jobTitle?: string;
 }
 ```
