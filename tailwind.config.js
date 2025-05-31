@@ -19,6 +19,7 @@ module.exports = {
           'yellow': {
             DEFAULT: '#FDB930',    // Government yellow
             'light': '#FFD700',    // Accent yellow
+            600: '#D97706',        // Darker yellow for better contrast
           },
           'red': {
             DEFAULT: '#D32F2F',    // Government red for alerts/errors
@@ -28,6 +29,17 @@ module.exports = {
         'hover-blue': '#252879', // Darker blue for hover states
         'main-red': '#A43E3E',   // Main red color
         'main-red-hover': '#8B3434', // Darker red for hover states
+        // Enhanced dashboard colors
+        'dashboard': {
+          'bg': '#F8FAFC',         // Light background
+          'card': '#FFFFFF',       // Card background
+          'border': '#E2E8F0',     // Border color
+          'text': {
+            'primary': '#1A202C',   // Primary text
+            'secondary': '#4A5568', // Secondary text
+            'muted': '#718096',     // Muted text
+          }
+        }
       },
       fontFamily: {
         sans: ['Public Sans', 'Arial', 'system-ui', 'sans-serif'],
@@ -53,6 +65,9 @@ module.exports = {
       },
       boxShadow: {
         'custom': '0 0 15px rgba(0, 0, 0, 0.1)', // Shadow matching the original design
+        'card': '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)',
+        'card-hover': '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+        'dashboard': '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)',
       },
       animation: {
         fadeIn: 'fadeIn 0.5s ease-out forwards',

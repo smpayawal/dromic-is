@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 :root {
-  --background: #ffffff;
+  --background: #f9fafb;
   --foreground: #171717;
   --main-color: #2E3192;
   --hover-blue: #252879;
@@ -13,13 +13,13 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #f9fafb; /* Force light background even in dark mode */
+    --foreground: #171717; /* Force dark text even in dark mode */
   }
 }
 
 body {
-  background: var(--background);
+  background: #f9fafb; /* Light gray background */
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
@@ -53,4 +53,56 @@ body {
   .truncate-responsive {
     max-width: 120px;
   }
+}
+
+/* Dashboard specific styles */
+.dashboard-card {
+  @apply bg-white rounded-lg shadow-custom border border-gray-200 transition-all duration-200 hover:shadow-lg;
+}
+
+.dashboard-stat-card {
+  @apply dashboard-card border-l-4 overflow-hidden;
+}
+
+.dashboard-stat-card.blue {
+  @apply border-l-gov-blue;
+}
+
+.dashboard-stat-card.red {
+  @apply border-l-main-red;
+}
+
+.dashboard-stat-card.yellow {
+  @apply border-l-gov-yellow;
+}
+
+.dashboard-stat-card.green {
+  @apply border-l-green-500;
+}
+
+/* Chart container improvements */
+.recharts-responsive-container {
+  @apply font-sans;
+}
+
+/* Enhanced button hover effects */
+.quick-action-card {
+  @apply transition-all duration-200 hover:scale-[1.02] hover:shadow-lg;
+}
+
+/* Status indicator styles */
+.status-indicator {
+  @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+}
+
+.status-indicator.online {
+  @apply bg-green-100 text-green-800;
+}
+
+.status-indicator.offline {
+  @apply bg-red-100 text-red-800;
+}
+
+.status-indicator.warning {
+  @apply bg-yellow-100 text-yellow-800;
 }
