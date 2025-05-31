@@ -25,3 +25,32 @@ body {
 }
 
 /* Add any other global base styles here if necessary */
+
+/* Custom responsive utilities for better mobile support */
+@media (min-width: 475px) {
+  .xs\:block {
+    display: block;
+  }
+
+  .xs\:hidden {
+    display: none;
+  }
+
+  .xs\:flex {
+    display: flex;
+  }
+}
+
+/* Ensure text truncation works properly on small screens */
+.truncate-responsive {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+@media (max-width: 374px) {
+  .truncate-responsive {
+    max-width: 120px;
+  }
+}

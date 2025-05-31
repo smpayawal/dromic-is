@@ -11,7 +11,7 @@ export default function MainLayout({
   return (
     <div className="flex flex-col min-h-screen">
       <Navbar /> {/* Render the navigation bar */}
-      <main className="flex-grow pt-20 md:pt-24 p-4"> {/* Add top padding to account for sticky navbar */}
+      <main className="flex-grow pt-28 md:pt-32 lg:pt-36 px-2 sm:px-4 md:px-6 lg:px-8"> {/* Enhanced responsive padding for new navbar design */}
         {children} {/* Render the specific page content */}
       </main>
       {/* You could add a footer here if needed */}

@@ -36,13 +36,20 @@ module.exports = {
       spacing: {
         'gov-header': '72px',      // Standard government header height
         'gov-banner': '40px',      // Government banner height
-      },
-      container: {
+      },      container: {
         center: true,
         padding: "2rem",
         screens: {
           "2xl": "1400px",
         },
+      },
+      screens: {
+        'xs': '475px',
+        'sm': '640px',
+        'md': '768px',
+        'lg': '1024px',
+        'xl': '1280px',
+        '2xl': '1400px',
       },
       boxShadow: {
         'custom': '0 0 15px rgba(0, 0, 0, 0.1)', // Shadow matching the original design
