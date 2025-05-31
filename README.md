@@ -45,10 +45,14 @@ DROMIC-IS is a comprehensive web-based information system designed for disaster 
 
 ### Target Users
 
-- **Local Government Units (LGU)**: Municipal and provincial disaster response coordinators
-- **Field Officers (FO)**: On-ground personnel collecting and reporting data
-- **Central Office (CO)**: National-level coordinators and decision makers
-- **Encoders**: Data entry specialists managing information input
+- **Super Admin (SA)**: System-wide administrator with complete control over all functionalities
+- **Admin**: Administrative personnel managing system configuration and user access
+- **Secretary**: Executive-level official overseeing departmental operations
+- **Director**: Department head managing strategic operations and policy implementation
+- **Regional Director (RD)**: Regional-level administrator coordinating disaster response efforts
+- **Central Officer (CO)**: National-level coordinator handling centralized operations
+- **Field Officer (FO)**: On-ground personnel collecting and reporting disaster response data
+- **Local Government Unit (LGU)**: Municipal and provincial disaster response coordinators
 
 ## ✨ Features
 
@@ -318,7 +322,7 @@ interface PersonalInfo {
 #### Step 3: Work Information
 ```typescript
 interface WorkInfo {
-  position: 'LGU' | 'FO' | 'CO' | 'Encoder'; // Required role selection
+  position: 'SA' | 'ADM' | 'Sec' | 'Dir' | 'RD' | 'CO' | 'FO' | 'LGU'; // Required role selection
   jobTitle: string;        // Required job title
   division?: string;       // Optional organizational unit
   region?: string;         // Philippine region selection
