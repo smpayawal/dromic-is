@@ -28,8 +28,9 @@ export function ChartCard({
   children 
 }: ChartCardProps) {
   const IconComponent = chartIcons[type];
-    return (
-    <Card className={cn("bg-white", className)}>
+  
+  return (
+    <Card className={cn("", className)}>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
         <CardTitle className="text-base font-semibold">
           {title}
@@ -38,7 +39,7 @@ export function ChartCard({
       </CardHeader>
       <CardContent>
         <div 
-          className="w-full bg-white rounded-lg flex items-center justify-center border border-gray-100"
+          className="w-full bg-gray-50 rounded-lg flex items-center justify-center border-2 border-dashed border-gray-200"
           style={{ height: `${height}px` }}
         >
           {children || (

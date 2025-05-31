@@ -16,7 +16,7 @@ interface DashboardSectionProps {
 export function DashboardGrid({ children, className }: DashboardGridProps) {
   return (
     <div className={cn(
-      "grid gap-4 md:gap-6 lg:gap-8",
+      "grid gap-6",
       "grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4",
       className
     )}>
@@ -32,22 +32,24 @@ export function DashboardSection({
   className 
 }: DashboardSectionProps) {
   return (
-    <div className={cn("space-y-4", className)}>
+    <div className={cn("space-y-6", className)}>
       {(title || description) && (
-        <div className="space-y-1">
+        <div className="space-y-2">
           {title && (
-            <h2 className="text-xl font-semibold text-gray-900">
+            <h2 className="text-2xl font-semibold text-gray-900 tracking-tight">
               {title}
             </h2>
           )}
           {description && (
-            <p className="text-sm text-gray-600">
+            <p className="text-gray-600 leading-relaxed">
               {description}
             </p>
           )}
         </div>
       )}
-      {children}
+      <div className="mt-6">
+        {children}
+      </div>
     </div>
   );
 }
@@ -55,7 +57,7 @@ export function DashboardSection({
 export function StatsSection({ children, className }: DashboardGridProps) {
   return (
     <div className={cn(
-      "grid gap-4 md:gap-6",
+      "grid gap-6",
       "grid-cols-1 sm:grid-cols-2 lg:grid-cols-4",
       className
     )}>

@@ -74,9 +74,10 @@ export function StatsCard({
   className
 }: StatsCardProps) {
   const colorConfig = colorVariants[color];
-    return (
+  
+  return (
     <Card className={cn(
-      "relative overflow-hidden border-l-4 hover:shadow-lg transition-all duration-200 bg-white",
+      "relative overflow-hidden border-l-4 hover:shadow-lg transition-all duration-200",
       colorConfig.accent,
       className
     )}>

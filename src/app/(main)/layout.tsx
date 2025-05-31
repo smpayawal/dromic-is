@@ -10,7 +10,7 @@ export default function MainLayout({
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
       <Navbar /> {/* Render the navigation bar */}
-      <main className="flex-grow pt-28 md:pt-32 lg:pt-36 px-2 sm:px-4 md:px-6 lg:px-8 bg-gray-50"> {/* Enhanced responsive padding for new navbar design */}
+      <main className="flex-grow pt-20 md:pt-24 lg:pt-28 px-2 sm:px-4 md:px-6 lg:px-8 bg-gray-50"> {/* Reduced top padding for a more compact dashboard */}
         {children} {/* Render the specific page content */}
       </main>
       {/* You could add a footer here if needed */}

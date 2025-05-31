@@ -28,23 +28,29 @@ import { ResponseTimeChart } from '@/components/charts/response-time';
 import { ResourceDistributionChart } from '@/components/charts/resource-distribution';
 import { RegionalActivityChart } from '@/components/charts/regional-activity';
 
+// Import form components
+import { StatsForm } from '@/components/forms/stats-form';
+import { QuickActionsForm } from '@/components/forms/quick-actions-form';
+import { AnalyticsForm } from '@/components/forms/analytics-form';
+import { ActivityForm } from '@/components/forms/activity-form';
+
 export default function DashboardPage() {
   return (
     <div className="container mx-auto py-6 space-y-8">
-      {/* Header Section */}
-      <div className="flex flex-col space-y-2 bg-white p-6 rounded-lg shadow-sm">
+      {/* Dashboard Header */}
+      <header className="space-y-3">
         <h1 className="text-3xl font-bold text-main-color">Dashboard</h1>
         <p className="text-gray-600">
           Monitor disaster response operations and manage critical information in real-time.
         </p>
-      </div>
-
-      {/* Key Statistics Section */}
-      <div className="bg-white p-6 rounded-lg shadow-sm">
+      </header>      {/* Key Statistics */}
+      <section aria-labelledby="stats-heading">
+        <h2 id="stats-heading" className="sr-only">Key Statistics Section</h2>
         <DashboardSection 
           title="Key Statistics" 
           description="Real-time overview of disaster response metrics"
         >
+          <StatsForm />
           <StatsSection>
             <StatsCard
               title="Active Incidents"
@@ -80,14 +86,14 @@ export default function DashboardPage() {
             />
           </StatsSection>
         </DashboardSection>
-      </div>
-
-      {/* Quick Actions Section */}
-      <div className="bg-white p-6 rounded-lg shadow-sm">
+      </section>      {/* Quick Actions */}
+      <section aria-labelledby="actions-heading">
+        <h2 id="actions-heading" className="sr-only">Quick Actions Section</h2>
         <DashboardSection 
           title="Quick Actions" 
           description="Common tasks and frequently accessed modules"
         >
+          <QuickActionsForm />
           <DashboardGrid>
             <QuickAction
               title="File Incident Report"
@@ -119,14 +125,14 @@ export default function DashboardPage() {
             />
           </DashboardGrid>
         </DashboardSection>
-      </div>
-
-      {/* Data Visualization Section */}
-      <div className="bg-white p-6 rounded-lg shadow-sm">
+      </section>      {/* Analytics & Data Visualization */}
+      <section aria-labelledby="analytics-heading">
+        <h2 id="analytics-heading" className="sr-only">Analytics and Data Visualization Section</h2>
         <DashboardSection 
           title="Analytics & Trends" 
           description="Visual insights into disaster response patterns"
         >
+          <AnalyticsForm />
           <div className="grid gap-6 lg:grid-cols-2">
             <IncidentTrendsChart />
             <ResponseTimeChart />
@@ -134,14 +140,14 @@ export default function DashboardPage() {
             <RegionalActivityChart />
           </div>
         </DashboardSection>
-      </div>
-
-      {/* Recent Activity Section */}
-      <div className="bg-white p-6 rounded-lg shadow-sm">
+      </section>      {/* Activity & System Status */}
+      <section aria-labelledby="activity-heading">
+        <h2 id="activity-heading" className="sr-only">Recent Activity and System Status Section</h2>
         <DashboardSection 
           title="Recent Activity" 
           description="Latest updates and system notifications"
         >
+          <ActivityForm />
           <div className="grid gap-6 lg:grid-cols-3">
             <Card>
               <CardHeader>
@@ -248,7 +254,7 @@ export default function DashboardPage() {
             </Card>
           </div>
         </DashboardSection>
-      </div>
+      </section>
     </div>
   );
 }
