@@ -238,7 +238,11 @@ const Navbar: React.FC = () => {  const [isMobileMenuOpen, setIsMobileMenuOpen] 
                   id="profile-button"
                   type="button"
                   onClick={toggleProfileMenu}
-                  className="flex items-center space-x-2 text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gov-blue min-w-[44px] min-h-[44px]"
+                  className={cn(
+                    "flex items-center space-x-2 text-sm rounded-xl bg-white min-w-[44px] min-h-[44px] px-3 py-1 transition-all duration-150",
+                    isProfileOpen ? "border-main-red shadow-md" : "hover:border-gov-blue",
+                    "focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gov-blue"
+                  )}
                   aria-expanded={isProfileOpen}
                   aria-haspopup="true"
                   aria-controls="profile-menu-dropdown"
