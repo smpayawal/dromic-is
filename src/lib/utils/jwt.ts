@@ -7,6 +7,7 @@ export interface TokenPayload {
   email: string;
   userLevelId: string;
   position: string;
+  sessionId?: string; // Optional session ID for tracking
 }
 
 /**
