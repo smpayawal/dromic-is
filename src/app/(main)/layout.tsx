@@ -1,5 +1,6 @@
 import React from 'react';
 import Navbar from './navigation/navbar'; // Import the Navbar component
+import Footer from '@/components/layout/footer'; // Import the Footer component
 
 export default function MainLayout({
   children,
@@ -13,7 +14,7 @@ export default function MainLayout({
       <main className="flex-grow pt-5 px-2 sm:px-4 md:px-6 lg:px-8 bg-gray-50">
         {children}
       </main>
-      {/* You could add a footer here if needed */}
+      <Footer />
     </div>
   );
 }
