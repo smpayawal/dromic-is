@@ -7,20 +7,7 @@ import { Menu, X, User, Bell, Search, Globe, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
 import ProfileDropdown from './components/ProfileDropdown';
-
-// Placeholder for user data - replace with actual data fetching
-interface UserData {
-  name: string;
-  role?: string; // Add role
-  avatarUrl?: string;
-  // Add new fields for location and organizational details
-  region?: string;
-  province?: string;
-  municipality?: string;
-  barangay?: string;
-  position?: string;
-  jobTitle?: string;
-}
+import { getUserSession, UserData, logoutUser } from '@/lib/utils/auth';
 
 // Enhanced navigation link interface with dropdown support
 interface NavLink {
@@ -32,11 +19,13 @@ interface NavLink {
   dropdownItems?: Array<{ href: string; label: string; icon?: React.ElementType }>;
 }
 
-const Navbar: React.FC = () => {  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+const Navbar: React.FC = () => {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const [user, setUser] = useState<UserData | null>(null); // State for user data
+  const [user, setUser] = useState<UserData | null>(null);
   const [activePath, setActivePath] = useState('');
-  const [openDropdown, setOpenDropdown] = useState<string | null>(null); // State for main nav dropdown
+  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
   // Get active path for link styling
@@ -44,26 +33,29 @@ const Navbar: React.FC = () => {  const [isMobileMenuOpen, setIsMobileMenuOpen] 
     if (typeof window !== 'undefined') {
       setActivePath(window.location.pathname);
     }
-  }, []);  // Placeholder: Fetch user data on component mount
+  }, []);
+
+  // Fetch user data on component mount
   useEffect(() => {
-    // const session = getUserSession(); // Replace with your actual auth logic
-    // if (session?.isLoggedIn) { setUser(session.user); }
-    // Simulating fetching user data
-    const timer = setTimeout(() => {
-      setUser({ 
-        name: 'admin adminddd', 
-        role: 'Admin', 
-        avatarUrl: '/AGAPP.png',
-        position: 'Regional Director', // Example data
-        jobTitle: 'Lead Operations Officer', // Example data
-        region: 'NCR', // Example data
-        province: 'Metro Manila', // Example data
-        municipality: 'Quezon City', // Example data
-        barangay: 'Diliman' // Example data
-      }); // Updated example user
-    }, 500);
-    return () => clearTimeout(timer); // Cleanup timer
-  }, []);const toggleMobileMenu = () => {
+    const fetchUser = async () => {
+      try {
+        const session = await getUserSession();
+        if (session.isLoggedIn && session.user) {
+          setUser(session.user);
+        } else {
+          // Redirect to login if not authenticated
+          router.push('/login');
+        }
+      } catch (error) {
+        console.error('Error fetching user session:', error);
+        router.push('/login');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchUser();
+  }, [router]);const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
   };
 
@@ -127,16 +119,18 @@ const Navbar: React.FC = () => {  const [isMobileMenuOpen, setIsMobileMenuOpen] 
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [isProfileOpen, openDropdown]);
-
-  // Placeholder logout handler
+  // Logout handler
   const handleLogout = async () => {
-    console.log('Logging out...');
-    // await logoutUser();
-    // Redirect or update state after logout
-    setIsProfileOpen(false);
-    setUser(null); // Clear user state
-    // Potentially redirect: window.location.href = '/login';
-  };  const navLinksConfig: NavLink[] = [
+    try {
+      setIsProfileOpen(false);
+      await logoutUser(); // This will redirect to login page
+    } catch (error) {
+      console.error('Logout error:', error);
+      // Clear user state and redirect even if logout request fails
+      setUser(null);
+      window.location.href = '/login';
+    }
+  };const navLinksConfig: NavLink[] = [
     { 
       href: '/dashboard', 
       label: 'Dashboard',
@@ -246,13 +240,12 @@ const Navbar: React.FC = () => {  const [isMobileMenuOpen, setIsMobileMenuOpen] 
                   aria-expanded={isProfileOpen}
                   aria-haspopup="true"
                   aria-controls="profile-menu-dropdown"
-                >
-                  <span className="sr-only">Open user menu</span>
-                  {user?.avatarUrl ? (
+                >                  <span className="sr-only">Open user menu</span>
+                  {user?.profile?.imageUrl ? (
                     <div className="relative w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 flex-shrink-0">
                       <Image
                         className="rounded-full object-cover"
-                        src={user.avatarUrl}
+                        src={user.profile.imageUrl}
                         alt="User avatar"
                         fill
                         sizes="(max-width: 640px) 32px, (max-width: 768px) 36px, 40px"
@@ -266,23 +259,25 @@ const Navbar: React.FC = () => {  const [isMobileMenuOpen, setIsMobileMenuOpen] 
                   <div className="hidden lg:flex flex-col items-start min-w-0">
                     {/* Full Name */}
                     <span className="font-semibold text-gray-900 text-sm truncate max-w-[180px]">
-                      {user?.name || 'User'}
+                      {user?.profile?.firstName && user?.profile?.lastName 
+                        ? `${user.profile.firstName} ${user.profile.lastName}` 
+                        : user?.username || 'User'}
                     </span>
                     {/* Position only */}
-                    {user?.position && (
+                    {user?.userLevel?.position && (
                       <span className="text-xs text-gray-700 truncate max-w-[180px]">
-                        {user.position}
+                        {user.userLevel.position}
                       </span>
                     )}
-                    {/* Location: Province, Municipality */}
-                    {(user?.province || user?.municipality) && (
+                    {/* Location: Province, City */}
+                    {(user?.profile?.province || user?.profile?.city) && (
                       <span className="text-xs text-gray-500 truncate max-w-[180px]">
-                        {user?.province}
-                        {user?.province && user?.municipality ? ', ' : ''}{user?.municipality}
+                        {user?.profile?.province}
+                        {user?.profile?.province && user?.profile?.city ? ', ' : ''}{user?.profile?.city}
                       </span>
                     )}
                   </div>
-                  <ChevronDown className="h-4 w-4 text-gray-500 hidden lg:block flex-shrink-0" />                </button>
+                  <ChevronDown className="h-4 w-4 text-gray-500 hidden lg:block flex-shrink-0" /></button>
 
                 {/* Use the new ProfileDropdown component */}
                 <ProfileDropdown 

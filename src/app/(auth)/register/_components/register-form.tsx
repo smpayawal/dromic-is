@@ -37,19 +37,63 @@ export default function RegisterForm() {
     moveToPrevStep,
     handleSubmit,
     setShowPassword,
-    setShowConfirmPassword,
-  } = useRegisterForm(async (data) => {
-    // TODO: Implement actual registration logic
+    setShowConfirmPassword,  } = useRegisterForm(async (data) => {
     console.log("Registration data:", data);
-    await new Promise(resolve => setTimeout(resolve, 1500));
     
-    // Simulate success for demo
-    // In production, this would call your API
-    
-    // Redirect to login after a short delay
-    setTimeout(() => {
-      window.location.href = "/login";
-    }, 2000);
+    try {
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          // Account information
+          email: data.email,
+          username: data.username,
+          password: data.password,
+          confirmPassword: data.confirmPassword,
+          
+          // Personal information
+          firstName: data.firstName,
+          lastName: data.lastName,
+          middleInitial: data.middleInitial,
+          dateOfBirth: data.dateOfBirth,
+          phoneNumber: data.phoneNumber,
+          address: data.address,
+          
+          // Work information
+          position: data.position,
+          division: data.division,
+          jobTitle: data.jobTitle,
+          region: data.region,
+          province: data.province,
+          city: data.city,
+          barangay: data.barangay,
+          
+          // Terms
+          termsAccepted: data.termsAccepted,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        // Registration successful
+        console.log('Registration successful:', result);
+        
+        // Redirect to dashboard (user is automatically logged in)
+        setTimeout(() => {
+          window.location.href = "/dashboard";
+        }, 2000);
+      } else {
+        // Registration failed
+        throw new Error(result.error || 'Registration failed');
+      }
+    } catch (error) {
+      console.error('Registration error:', error);
+      throw error;
+    }
   });
 
   const togglePasswordVisibility = (field: "password" | "confirmPassword") => {
@@ -328,13 +372,17 @@ export default function RegisterForm() {
               'disabled:cursor-not-allowed disabled:border-gray-200 disabled:bg-gray-50 disabled:text-gray-500'
             )}
             disabled={isLoading}
-            required
-          >
+            required          >
             <option value="">Select Position</option>
-            <option value="LGU">LGU (Local Government Unit)</option>
-            <option value="FO">FO (Field Officer)</option>
-            <option value="CO">CO (Central Office)</option>
-            <option value="Encoder">Encoder</option>
+            <option value="Super Admin">Super Admin</option>
+            <option value="Admin">Admin</option>
+            <option value="Secretary">Secretary</option>
+            <option value="Director">Director</option>
+            <option value="Regional Director">Regional Director</option>
+            <option value="Central Officer">Central Officer</option>
+            <option value="Field Officer">Field Officer</option>
+            <option value="Local Government Unit">Local Government Unit</option>
+            <option value="Team Leader">Team Leader</option>
           </select>
         </div>
         {errors.position && (

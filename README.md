@@ -171,14 +171,26 @@ Git       ≥ 2.0.0
 
 ### Demo Credentials
 
-For immediate testing and demonstration:
+For immediate testing and demonstration, create new accounts through the registration system:
 
-```
-Username: admin
-Password: S4pfmel3
-```
+**Registration Process:**
+1. Navigate to `/register` 
+2. Complete the 3-step registration form
+3. Select from available positions: Super Admin, Admin, Secretary, Director, Regional Director, Central Officer, Field Officer, Local Government Unit, Team Leader
 
-> **⚠️ Security Note**: These are development-only credentials. Replace with proper authentication in production.
+**Login Options After Registration:**
+- Login with your registered email address
+- Login with your chosen username  
+- Both options use the same password you set during registration
+
+**Authentication Features:**
+- ✅ Register new accounts via `/register` with comprehensive profile creation
+- ✅ Login with email or username via `/login` for maximum user convenience
+- ✅ Secure session management with JWT tokens and HTTP-only cookies
+- ✅ Profile data stored in PostgreSQL database with full transaction safety
+- ✅ Real-time validation and user-friendly error handling
+
+> **🔒 Security Note**: All authentication is database-backed with bcrypt password hashing, JWT session tokens, and production-ready security measures.
 
 ## 🏗️ Project Architecture
 
@@ -221,6 +233,16 @@ dromic-is/
 │   │   │   │   └── components/      # Navigation sub-components
 │   │   │   │       └── ProfileDropdown.tsx
 │   │   │   └── layout.tsx           # Main layout with navbar
+│   │   ├── 📁 api/                  # Backend API Routes (NEW)
+│   │   │   └── 📁 auth/             # Authentication endpoints
+│   │   │       ├── login/           # POST /api/auth/login
+│   │   │       │   └── route.ts     # Login endpoint
+│   │   │       ├── register/        # POST /api/auth/register
+│   │   │       │   └── route.ts     # Registration endpoint
+│   │   │       ├── me/              # GET /api/auth/me
+│   │   │       │   └── route.ts     # Current user endpoint
+│   │   │       └── logout/          # POST /api/auth/logout
+│   │   │           └── route.ts     # Logout endpoint
 │   │   ├── layout.tsx               # Root application layout
 │   │   ├── page.tsx                 # Homepage (redirects to dashboard)
 │   │   ├── globals.css              # Global styles and CSS variables
@@ -251,27 +273,32 @@ dromic-is/
 │   │           ├── checkbox.tsx     # Checkbox input component
 │   │           └── text-input.tsx   # Text input with validation
 │   └── 📁 lib/                     # Utility libraries and business logic
-│       ├── utils.ts                 # General utility functions
-│       ├── 📁 hooks/               # Custom React hooks
-│       │   ├── Login/              # Login-related hooks
+│       ├── 📁 utils/               # Core utility functions
+│       │   ├── auth.ts             # Authentication utilities (UPDATED)
+│       │   ├── jwt.ts              # JWT token management (NEW)
+│       │   ├── password.ts         # Password hashing utilities (NEW)
+│       │   └── validation.ts       # Zod validation schemas (NEW)
+│       ├── db.ts                   # Database connection utility (NEW)
+│       ├── utils.ts                # General utility functions
+│       ├── 📁 hooks/              # Custom React hooks
+│       │   ├── Login/             # Login-related hooks
 │       │   │   └── useLoginForm.ts
-│       │   └── Register/           # Registration hooks
+│       │   └── Register/          # Registration hooks
 │       │       └── useRegisterForm.ts
-│       ├── 📁 utils/               # Specialized utilities
-│       │   └── auth.ts             # Authentication utilities
-│       └── 📁 api/                 # API integration utilities (placeholder)
+│       └── 📁 api/                # API integration utilities (placeholder)
 ├── 📁 Configuration Files
-├── package.json                     # Project dependencies and scripts
-├── package-lock.json               # Dependency lock file
-├── tsconfig.json                   # TypeScript configuration
-├── tailwind.config.js              # Tailwind CSS customization
-├── next.config.ts                  # Next.js configuration
-├── eslint.config.mjs               # ESLint configuration
-├── postcss.config.js               # PostCSS configuration
-├── postcss.config.mjs              # PostCSS ES module configuration
-├── .gitignore                      # Git ignore patterns
-└── .vscode/                        # VS Code workspace settings
-    └── tasks.json                  # Development tasks configuration
+├── .env.local                      # Environment variables (NEW)
+├── package.json                    # Project dependencies and scripts
+├── package-lock.json              # Dependency lock file
+├── tsconfig.json                  # TypeScript configuration
+├── tailwind.config.js             # Tailwind CSS customization
+├── next.config.ts                 # Next.js configuration
+├── eslint.config.mjs              # ESLint configuration
+├── postcss.config.js              # PostCSS configuration
+├── postcss.config.mjs             # PostCSS ES module configuration
+├── .gitignore                     # Git ignore patterns
+└── .vscode/                       # VS Code workspace settings
+    └── tasks.json                 # Development tasks configuration
 ```
 
 ### Architecture Patterns
@@ -292,6 +319,72 @@ dromic-is/
 - **Client Storage**: localStorage for authentication and user preferences
 
 ## 🔐 Authentication System
+
+### Database-Powered Authentication
+
+The authentication system is fully integrated with Neon PostgreSQL database with secure session management:
+
+#### Database Schema
+```sql
+-- Account table for user authentication
+CREATE TABLE account (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  username VARCHAR(255) UNIQUE NOT NULL,
+  email VARCHAR(255) UNIQUE NOT NULL,
+  password_hash VARCHAR(255) NOT NULL,
+  status VARCHAR(50) DEFAULT 'Active',
+  last_login TIMESTAMP,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  "profileId" UUID REFERENCES profile(id),
+  "user_levelId" UUID REFERENCES user_level(id)
+);
+
+-- Profile table for user details
+CREATE TABLE profile (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  firstname VARCHAR(255) NOT NULL,
+  lastname VARCHAR(255) NOT NULL,
+  middlename VARCHAR(255),
+  -- Additional profile fields...
+);
+```
+
+### API Endpoints
+
+#### Authentication Routes
+- `POST /api/auth/register` - User registration with account and profile creation
+- `POST /api/auth/login` - Email/password authentication with JWT tokens
+- `GET /api/auth/me` - Get current user session and profile data
+- `POST /api/auth/logout` - Secure logout with cookie clearing
+
+#### Security Features
+- **Password Hashing**: bcrypt with configurable salt rounds
+- **JWT Tokens**: Secure session management with HTTP-only cookies
+- **Database Transactions**: Atomic operations for data consistency
+- **Input Validation**: Zod schemas for type-safe validation
+
+#### Authentication Flow
+```typescript
+// Login with email or username
+const response = await fetch('/api/auth/login', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  credentials: 'include',
+  body: JSON.stringify({ 
+    email: 'user@example.com', // or username: 'admin'
+    password: 'password123' 
+  })
+});
+
+// Get current user session
+const session = await getUserSession();
+if (session.isLoggedIn) {
+  // Access user data: session.user.profile.firstName, etc.
+}
+
+// Secure logout
+await logoutUser(); // Clears cookies and redirects
+```
 
 ### Multi-Step Registration Process
 
@@ -331,33 +424,215 @@ interface WorkInfo {
   barangay?: string;      // Barangay information
   termsAccepted: boolean; // Required terms acceptance
 }
+// Valid position values: "Super Admin", "Admin", "Secretary", "Director", 
+// "Regional Director", "Central Officer", "Field Officer", "Local Government Unit", "Team Leader"
 ```
 
 ### Authentication Features
 
 #### Login System
-- **Credential Validation**: Username/password authentication with error handling
-- **Remember Me**: Persistent login with localStorage token management
-- **Password Visibility**: Toggle for password field with accessibility support
-- **Form Validation**: Real-time validation with user-friendly error messages
+- **Dual Login Options**: Login with either email address or username for maximum flexibility
+- **Secure JWT Tokens**: HTTP-only cookies for secure session management with 7-day expiration
+- **Remember Me**: Persistent login preferences with localStorage for user convenience
+- **Password Visibility**: Toggle for password field with full accessibility support
+- **Real-time Validation**: Instant feedback with user-friendly error messages
+- **Auto-redirect**: Seamless navigation to dashboard upon successful authentication
+- **Account Security**: Failed login attempt tracking with temporary account lockout after 5 failed attempts
+
+#### Registration System
+- **Database Integration**: Complete user account and profile creation
+- **Transaction Safety**: Atomic database operations with rollback on failure
+- **Duplicate Prevention**: Email and username uniqueness validation
+- **Secure Storage**: Encrypted password storage with bcrypt hashing
 
 #### Password Recovery
 - **Multi-step Process**: Email → Verification → New Password → Confirmation
-- **Simulation Ready**: Complete UI flow for password reset (backend integration ready)
+- **Backend Ready**: Complete UI flow for password reset (implementation pending)
 - **Security Validation**: Password strength requirements and confirmation matching
 
-#### Security Implementation
+#### Session Management
 ```typescript
-// Authentication utilities
-export const validateCredentials = (username: string, password: string) => {
-  return username === STATIC_CREDENTIALS.username && 
-         password === STATIC_CREDENTIALS.password;
-};
+// User data structure from database
+interface UserData {
+  id: string;
+  username: string;
+  email: string;
+  status: string;
+  profile: {
+    firstName: string;
+    lastName: string;
+    imageUrl?: string;
+    region?: string;
+    province?: string;
+    city?: string;
+    // ... additional profile fields
+  };
+  userLevel: {
+    position: string;
+    abbreviation: string;
+    level: number;
+  };
+}
+```
 
-export const getUserSession = () => {
-  const token = localStorage.getItem('authToken');
-  return token ? { isLoggedIn: true, user: {...} } : { isLoggedIn: false };
-};
+## 📚 API Reference
+
+### Authentication Endpoints
+
+#### POST /api/auth/register
+Register a new user account with profile information.
+
+**Request Body:**
+```typescript
+{
+  // Account Information
+  email: string;
+  username: string;
+  password: string;
+  confirmPassword: string;
+  
+  // Personal Information
+  firstName: string;
+  lastName: string;
+  middleInitial?: string;
+  dateOfBirth: string;
+  phoneNumber: string;
+  address: string;
+    // Work Information
+  position: string; // Must be one of the predefined user levels (see UserLevelEnum)
+  // Valid position values: "Super Admin", "Admin", "Secretary", "Director", 
+  // "Regional Director", "Central Officer", "Field Officer", "Local Government Unit", "Team Leader"
+  division?: string;
+  jobTitle: string;
+  region?: string;
+  province?: string;
+  city?: string;
+  barangay?: string;
+  termsAccepted: boolean;
+}
+```
+
+**Response:**
+```typescript
+// Success (201)
+{
+  message: "User registered successfully",
+  user: {
+    id: string;
+    username: string;
+    email: string;
+  }
+}
+
+// Error (400/409)
+{
+  error: string;
+  details?: string;
+}
+```
+
+#### POST /api/auth/login
+Authenticate user with email/username and password.
+
+**Request Body:**
+```typescript
+{
+  email: string; // Can be either email address or username
+  password: string;
+}
+```
+
+**Response:**
+```typescript
+// Success (200) - Sets HTTP-only cookie
+{
+  message: "Login successful",
+  user: UserData; // See UserData interface above
+}
+
+// Error (401)
+{
+  error: "Invalid email/username or password" | "User not found" | "Account inactive"
+}
+```
+
+#### GET /api/auth/me
+Get current authenticated user information.
+
+**Headers:**
+```
+Cookie: auth-token=<jwt_token>
+```
+
+**Response:**
+```typescript
+// Success (200)
+{
+  user: UserData; // Complete user profile data
+}
+
+// Error (401)
+{
+  error: "No authentication token found" | "Invalid or expired token"
+}
+```
+
+#### POST /api/auth/logout
+Log out current user and clear authentication cookies.
+
+**Response:**
+```typescript
+// Success (200)
+{
+  message: "Logout successful"
+}
+```
+
+### Database Schema
+
+#### Core Tables
+```sql
+-- User authentication and account management
+account (
+  id UUID PRIMARY KEY,
+  username VARCHAR(255) UNIQUE,
+  email VARCHAR(255) UNIQUE,
+  password_hash VARCHAR(255),
+  status VARCHAR(50) DEFAULT 'Active',
+  last_login TIMESTAMP,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  "profileId" UUID REFERENCES profile(id),
+  "user_levelId" UUID REFERENCES user_level(id)
+);
+
+-- User profile information
+profile (
+  id UUID PRIMARY KEY,
+  firstname VARCHAR(255),
+  lastname VARCHAR(255),
+  middlename VARCHAR(255),
+  name_ext VARCHAR(10),
+  image_url TEXT,
+  region VARCHAR(255),
+  province VARCHAR(255),
+  city VARCHAR(255),
+  barangay VARCHAR(255),
+  date_of_birth DATE,
+  phone_number VARCHAR(20),
+  address TEXT,
+  job_title VARCHAR(255),
+  division VARCHAR(255),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- User permission levels
+user_level (
+  id UUID PRIMARY KEY,
+  position VARCHAR(50) UNIQUE,
+  abbreviation VARCHAR(10),
+  "userLevel" INTEGER,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 ```
 
 ## 🔧 Development Guide
@@ -373,8 +648,19 @@ cd dromic-is
 # Install dependencies
 npm install
 
+# Set up environment variables
+cp .env.example .env.local
+# Edit .env.local with your database credentials
+
 # Start development server
 npm run dev
+```
+
+#### 2. Database Setup
+```bash
+# Ensure your Neon PostgreSQL database is running
+# Run database migrations (if you have them)
+# Seed initial data (user levels, etc.)
 ```
 
 #### 2. Code Structure Guidelines

@@ -1,44 +1,114 @@
-// Temporary static credentials for testing
-const STATIC_CREDENTIALS = {
-    username: 'admin',
-    password: 'S4pfmel3'
-};
+/**
+ * Interface for user data structure - matches API response from /api/auth/me
+ */
+export interface UserData {
+  id: string;
+  username: string;
+  email: string;
+  status: string;
+  lastLogin?: string;
+  createdAt: string;
+  profile: {
+    firstName: string;
+    lastName: string;
+    middleName?: string;
+    nameExtension?: string;
+    imageUrl?: string;
+    region?: string;
+    province?: string;
+    city?: string;
+    barangay?: string;
+    dateOfBirth?: string;
+    phoneNumber?: string;
+    address?: string;
+    jobTitle?: string;
+    division?: string;
+  };
+  userLevel: {
+    position: string;
+    abbreviation: string;
+    level: number;
+  };
+}
 
-// Function to validate login credentials
-export const validateCredentials = (username: string, password: string) => {
-    return username === STATIC_CREDENTIALS.username && password === STATIC_CREDENTIALS.password;
-};
+/**
+ * Interface for session data
+ */
+export interface SessionData {
+  isLoggedIn: boolean;
+  user?: UserData;
+}
 
-// Example function to simulate getting user session data
-export const getUserSession = () => {
-    const token = typeof window !== 'undefined' ? localStorage.getItem('authToken') : null;
+/**
+ * Get the current user session by calling the /api/auth/me endpoint
+ * @returns Promise<SessionData>
+ */
+export const getUserSession = async (): Promise<SessionData> => {
+  try {
+    const response = await fetch('/api/auth/me', {
+      method: 'GET',
+      credentials: 'include', // Include cookies
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
 
-    if (token) {
-      // Decode token or fetch user data based on token
+    if (response.ok) {
+      const data = await response.json();
       return {
         isLoggedIn: true,
-        user: {
-          id: '123',
-          name: 'Juan Dela Cruz',
-          email: 'juan.delacruz@example.com',
-          avatarUrl: '/AGAPP.png', // Example avatar
-          // Add other relevant user fields
-        },
+        user: data.user
       };
+    } else {
+      return { isLoggedIn: false };
     }
-
-    return { isLoggedIn: false, user: null };
-  };
-
-// Example function to simulate logout
-// Replace with actual logout logic (clearing tokens/session)
-export const logoutUser = async () => {
-  if (typeof window !== 'undefined') {
-    localStorage.removeItem('authToken');
-    window.location.href = '/login'; // Redirect to login page
+  } catch (error) {
+    console.error('Error getting user session:', error);
+    return { isLoggedIn: false };
   }
-  return Promise.resolve();
 };
 
-// Add other auth-related functions as needed
-// e.g., checkPermissions(user, requiredPermission)
+/**
+ * Log out the current user by calling the /api/auth/logout endpoint
+ * @returns Promise<void>
+ */
+export const logoutUser = async (): Promise<void> => {
+  try {
+    const response = await fetch('/api/auth/logout', {
+      method: 'POST',
+      credentials: 'include', // Include cookies
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (response.ok) {
+      // Clear any client-side storage
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('rememberMe');
+        localStorage.removeItem('username');
+      }
+      
+      // Redirect to login page
+      window.location.href = '/login';
+    } else {
+      console.error('Logout failed');
+    }
+  } catch (error) {
+    console.error('Error during logout:', error);
+    // Still redirect even if logout request fails
+    if (typeof window !== 'undefined') {
+      window.location.href = '/login';
+    }
+  }
+};
+
+/**
+ * Legacy function for backward compatibility
+ * @deprecated Use getUserSession() instead
+ */
+export const validateCredentials = (username: string, password: string) => {
+  console.warn('validateCredentials is deprecated. Use the new API endpoints.');
+  return false;
+};

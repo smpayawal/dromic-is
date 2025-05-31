@@ -1,13 +1,13 @@
 import { useState } from 'react';
 
 interface LoginFormState {
-  username: string;
+  email: string; // Changed from username to email
   password: string;
   rememberMe: boolean;
 }
 
 interface LoginFormErrors {
-  username?: string;
+  email?: string; // Changed from username to email
   password?: string;
 }
 
@@ -16,10 +16,10 @@ type MessageType = 'success' | 'error' | '';
 export function useLoginForm(onSubmit: (data: LoginFormState) => Promise<void>) {
   // Initialize rememberMe from localStorage if available
   const savedRememberMe = typeof window !== 'undefined' ? localStorage.getItem('rememberMe') === 'true' : false;
-  const savedUsername = typeof window !== 'undefined' ? localStorage.getItem('username') : '';
+  const savedEmail = typeof window !== 'undefined' ? localStorage.getItem('email') : '';
 
   const [formData, setFormData] = useState<LoginFormState>({
-    username: savedUsername || '',
+    email: savedEmail || '',
     password: '',
     rememberMe: savedRememberMe,
   });
@@ -32,9 +32,16 @@ export function useLoginForm(onSubmit: (data: LoginFormState) => Promise<void>) 
   const validateForm = (): boolean => {
     const newErrors: LoginFormErrors = {};
 
-    if (!formData.username.trim()) {
-      newErrors.username = 'Username is required';
+    if (!formData.email.trim()) {
+      newErrors.email = 'Email or username is required';
+    } else {
+      const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email);
+      const isUsername = /^[a-zA-Z0-9._-]{3,}$/.test(formData.email);
+      if (!isEmail && !isUsername) {
+        newErrors.email = 'Please enter a valid email address or username (at least 3 characters)';
+      }
     }
+    
     if (!formData.password.trim()) {
       newErrors.password = 'Password is required';
     } else if (formData.password.length < 8) {
@@ -55,10 +62,10 @@ export function useLoginForm(onSubmit: (data: LoginFormState) => Promise<void>) 
     if (name === 'rememberMe') {
       if (checked) {
         localStorage.setItem('rememberMe', 'true');
-        localStorage.setItem('username', formData.username);
+        localStorage.setItem('email', formData.email);
       } else {
         localStorage.removeItem('rememberMe');
-        localStorage.removeItem('username');
+        localStorage.removeItem('email');
       }
     }
 
