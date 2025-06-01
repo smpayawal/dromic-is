@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { Activity, Calendar, MapPin, Monitor, Eye, Filter, ChevronDown, ChevronUp, Shield } from 'lucide-react';
+import { Activity, Calendar, MapPin, Monitor, Eye, Filter, ChevronDown, ChevronUp, Shield, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/form-fields/button';
 
 interface ActivityLogEntry {
@@ -28,14 +28,17 @@ const ActivityLog: React.FC<ActivityLogProps> = ({ userId }) => {
   const [activities, setActivities] = useState<ActivityLogEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
-  const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
   const [filters, setFilters] = useState({
     activity_type: '',
     activity_category: '',
     days: 30
   });
-  const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());  const activityTypes = [
+  const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
+  
+  const itemsPerPage = 5;
+  const totalPages = Math.ceil(totalCount / itemsPerPage);const activityTypes = [
     'login', 'logout', 'create', 'update', 'delete', 'view', 
     'validate', 'export', 'import', 'download', 'upload', 
     'assign', 'search', 'filter', 'approve', 'reject', 'failed_login'
@@ -43,14 +46,14 @@ const ActivityLog: React.FC<ActivityLogProps> = ({ userId }) => {
   const activityCategories = [
     'session', 'incident', 'evacuation', 'assistance', 
     'system', 'user', 'data', 'report', 'account', 'security'
-  ];const fetchActivities = async (resetData = false) => {
+  ];  const fetchActivities = async (resetData = false) => {
     try {
       setIsLoading(true);
-      const currentPage = resetData ? 1 : page;
+      const pageToFetch = resetData ? 1 : currentPage;
       
       const queryParams = new URLSearchParams({
-        page: currentPage.toString(),
-        limit: '20',
+        page: pageToFetch.toString(),
+        limit: itemsPerPage.toString(),
         ...Object.fromEntries(Object.entries(filters).filter(([_, value]) => value))
       });
 
@@ -63,13 +66,13 @@ const ActivityLog: React.FC<ActivityLogProps> = ({ userId }) => {
       
       const data = await response.json();
 
+      setActivities(data.activities);
+      setTotalCount(data.total);
+      
       if (resetData) {
-        setActivities(data.activities);
-        setPage(1);
-      } else {
-        setActivities(prev => [...prev, ...data.activities]);
+        setCurrentPage(1);
       }
-      setHasMore(data.hasMore);
+      
       setError('');
     } catch (err) {
       console.error('Activity fetch error:', err);
@@ -78,18 +81,18 @@ const ActivityLog: React.FC<ActivityLogProps> = ({ userId }) => {
       setIsLoading(false);
     }
   };
-
   useEffect(() => {
     fetchActivities(true);
   }, [filters]);
 
   useEffect(() => {
-    if (page > 1) {
+    if (currentPage > 1) {
       fetchActivities();
     }
-  }, [page]);
-  const handleLoadMore = () => {
-    setPage(prev => prev + 1);
+  }, [currentPage]);  const handlePageChange = (newPage: number) => {
+    if (newPage >= 1 && newPage <= totalPages) {
+      setCurrentPage(newPage);
+    }
   };
 
   const handleFilterChange = (key: string, value: string) => {
@@ -215,15 +218,21 @@ const ActivityLog: React.FC<ActivityLogProps> = ({ userId }) => {
     <div className="max-w-4xl mx-auto">
       <div className="bg-white rounded-lg shadow-sm border">
         {/* Header */}
-        <div className="p-6 border-b border-gray-200">
-          <div className="flex items-center justify-between">
+        <div className="p-6 border-b border-gray-200">          <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <div className="p-2 bg-green-100 rounded-lg">
                 <Activity className="h-6 w-6 text-green-600" />
               </div>
               <div>
                 <h2 className="text-xl font-semibold text-gray-900">Activity Log</h2>
-                <p className="text-sm text-gray-600">Your recent account activities and actions</p>
+                <p className="text-sm text-gray-600">
+                  Your recent account activities and actions
+                  {totalCount > 0 && (
+                    <span className="ml-2 text-blue-600 font-medium">
+                      ({totalCount} total entries, showing {itemsPerPage} per page)
+                    </span>
+                  )}
+                </p>
               </div>
             </div>
           </div>
@@ -280,11 +289,12 @@ const ActivityLog: React.FC<ActivityLogProps> = ({ userId }) => {
                 <option value={90}>Last 90 days</option>
                 <option value={365}>Last year</option>
               </select>
-            </div>
-
-            <div className="flex items-end">
+            </div>            <div className="flex items-end">
               <Button
-                onClick={() => setFilters({ activity_type: '', activity_category: '', days: 30 })}
+                onClick={() => {
+                  setFilters({ activity_type: '', activity_category: '', days: 30 });
+                  setCurrentPage(1);
+                }}
                 className="w-full bg-gray-100 text-gray-700 hover:bg-gray-200"
               >
                 <Filter className="h-4 w-4 mr-2" />
@@ -421,21 +431,68 @@ const ActivityLog: React.FC<ActivityLogProps> = ({ userId }) => {
                 </div>
               );
             })
-          )}
-
-          {/* Load More Button */}
-          {hasMore && !isLoading && activities.length > 0 && (
-            <div className="p-6 text-center border-t">
-              <Button
-                onClick={handleLoadMore}
-                className="bg-gray-100 text-gray-700 hover:bg-gray-200"
-              >
-                Load More Activities
-              </Button>
+          )}          {/* Pagination Controls */}
+          {!isLoading && activities.length > 0 && totalPages > 1 && (
+            <div className="p-6 border-t bg-gray-50">
+              <div className="flex items-center justify-between">
+                <div className="text-sm text-gray-700">
+                  Showing page {currentPage} of {totalPages} ({totalCount} total entries)
+                </div>
+                
+                <div className="flex items-center space-x-2">
+                  {/* Previous Button */}
+                  <Button
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage <= 1}
+                    className="px-3 py-2 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  
+                  {/* Page Numbers */}
+                  <div className="flex items-center space-x-1">
+                    {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                      let pageNumber;
+                      if (totalPages <= 5) {
+                        pageNumber = i + 1;
+                      } else if (currentPage <= 3) {
+                        pageNumber = i + 1;
+                      } else if (currentPage >= totalPages - 2) {
+                        pageNumber = totalPages - 4 + i;
+                      } else {
+                        pageNumber = currentPage - 2 + i;
+                      }
+                      
+                      return (
+                        <Button
+                          key={pageNumber}
+                          onClick={() => handlePageChange(pageNumber)}
+                          className={`px-3 py-2 text-sm ${
+                            currentPage === pageNumber
+                              ? 'bg-blue-600 text-white'
+                              : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
+                          }`}
+                        >
+                          {pageNumber}
+                        </Button>
+                      );
+                    })}
+                  </div>
+                  
+                  {/* Next Button */}
+                  <Button
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage >= totalPages}
+                    className="px-3 py-2 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
             </div>
           )}
 
-          {isLoading && activities.length > 0 && (
+          {isLoading && (
             <div className="p-6 text-center border-t">
               <div className="animate-spin rounded-full h-6 w-6 border-2 border-blue-600 border-t-transparent mx-auto" />
             </div>
