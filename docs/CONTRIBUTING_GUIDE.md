@@ -30,6 +30,20 @@ Welcome to DROMIC-IS! We appreciate your interest in contributing to this disast
 
 ## Development Workflow
 
+DROMIC-IS follows a **three-branch workflow** for development, testing, and production. Understanding this workflow is essential for effective contribution.
+
+### 🌿 Branch Structure Overview
+
+```
+main (production)     ← Stable, production-ready code
+  ↑
+staging               ← Pre-production testing branch
+  ↑  
+develop               ← Integration branch for new features
+  ↑
+feature/your-feature  ← Your contribution branch
+```
+
 ### 1. Fork and Clone
 
 ```bash
@@ -40,44 +54,72 @@ cd dromic-is
 
 # Add upstream remote
 git remote add upstream https://github.com/original-org/dromic-is.git
+
+# Fetch all branches
+git fetch upstream
 ```
 
 ### 2. Set Up Development Environment
 
 ```bash
+# Switch to develop branch (main development branch)
+git checkout develop
+git pull upstream develop
+
 # Install dependencies
 npm install
 
 # Copy environment file
 cp .env.example .env.local
+# Edit .env.local with your development configuration
 
-# Set up database (if needed)
-npm run db:setup
-
-# Start development server
+# Start development server (includes full documentation)
 npm run dev
 ```
 
+**📍 Important**: Always work from the `develop` branch, not `main`. The `develop` branch contains:
+- Latest integrated features
+- Full development documentation (`/docs` folder)
+- Development configurations and tools
+- All test files and development dependencies
+
 ### 3. Development Process
+
+#### Understanding Target Branches
+
+- **`develop`** - Your primary target for feature contributions
+- **`staging`** - Testing branch (managed by maintainers)
+- **`main`** - Production branch (managed by maintainers)
 
 #### Create a Feature Branch
 
 ```bash
-# Sync with upstream
-git fetch upstream
-git checkout main
-git merge upstream/main
+# Ensure you're on the latest develop branch
+git checkout develop
+git pull upstream develop
 
-# Create feature branch
+# Create your feature branch from develop
 git checkout -b feature/descriptive-name
-# or
-git checkout -b fix/issue-number-description
+# Examples:
+# git checkout -b feature/user-profile-enhancement
+# git checkout -b fix/login-validation-bug
+# git checkout -b docs/api-documentation-update
 ```
+
+#### Branch Naming Conventions
+
+- **Features**: `feature/short-description`
+- **Bug Fixes**: `fix/issue-description` 
+- **Documentation**: `docs/section-being-updated`
+- **Hotfixes**: `hotfix/critical-issue` (only for urgent production fixes)
+- **Refactoring**: `refactor/component-or-system-name`
 
 #### Make Your Changes
 
 1. **Write Clean Code** - Follow our coding standards
 2. **Write Tests** - Include tests for new functionality
+3. **Update Documentation** - Update relevant docs in `/docs` folder if needed
+4. **Test Thoroughly** - Ensure your changes work in development environment
 3. **Update Documentation** - Update relevant documentation
 4. **Test Thoroughly** - Ensure your changes work as expected
 
@@ -468,3 +510,371 @@ New contributors can request mentorship for:
 ---
 
 Thank you for contributing to DROMIC-IS! Together, we're building better disaster response technology. 🚀
+
+### 🎯 Best Practices for Contributors
+
+#### 1. Branch Workflow Best Practices
+
+**Always Start from `develop`**
+```bash
+# ✅ CORRECT: Start from develop branch
+git checkout develop
+git pull upstream develop
+git checkout -b feature/my-new-feature
+
+# ❌ WRONG: Don't start from main or staging
+git checkout main  # This is for production only
+git checkout staging  # This is for testing only
+```
+
+**Keep Your Branch Current**
+```bash
+# Regularly sync with upstream develop
+git checkout feature/my-feature
+git fetch upstream
+git rebase upstream/develop
+
+# Or merge if you prefer (less clean history)
+git merge upstream/develop
+```
+
+**Working with Documentation**
+```bash
+# In development environment (develop branch):
+# ✅ Full access to /docs folder
+# ✅ Can edit development documentation
+# ✅ Can test documentation changes locally
+
+# The /docs folder contains:
+# - API_REFERENCE.md
+# - DEVELOPMENT_GUIDE.md
+# - PROJECT_ARCHITECTURE.md
+# - All other project documentation
+
+# Note: /docs is excluded from staging/production deployments
+```
+
+#### 2. Code Quality Best Practices
+
+**Pre-Contribution Checklist**
+- [ ] Code follows TypeScript/JavaScript standards
+- [ ] All new components have proper TypeScript interfaces
+- [ ] Unit tests written for new functionality
+- [ ] Integration tests updated if needed
+- [ ] Code linted with no errors (`npm run lint`)
+- [ ] Build passes successfully (`npm run build`)
+- [ ] Manual testing completed in development environment
+
+**Testing Your Changes**
+```bash
+# Run the full test suite
+npm run test                # Unit tests
+npm run test:integration   # Integration tests
+npm run lint               # Code quality
+npm run type-check         # TypeScript validation
+npm run build              # Build verification
+
+# Test in development environment
+npm run dev                # Start dev server with full docs
+# Test your changes thoroughly at http://localhost:3000
+```
+
+**Code Style Guidelines**
+```typescript
+// ✅ Good: Use TypeScript interfaces
+interface UserProfileProps {
+  user: User;
+  onUpdate: (user: User) => void;
+  isEditable?: boolean;
+}
+
+// ✅ Good: Descriptive component names
+export const UserProfileForm: React.FC<UserProfileProps> = ({ 
+  user, 
+  onUpdate, 
+  isEditable = true 
+}) => {
+  // Component logic
+};
+
+// ❌ Avoid: Vague names and missing types
+export const Form = ({ data, callback }) => {
+  // Hard to understand purpose
+};
+```
+
+#### 3. Pull Request Best Practices
+
+**Create Meaningful Pull Requests**
+```markdown
+# ✅ Good PR Title:
+feat: implement real-time incident status updates
+
+# ✅ Good PR Description:
+## Summary
+Adds real-time WebSocket integration for incident status updates, allowing users to see live changes without page refresh.
+
+## Changes Made
+- Added WebSocket connection service
+- Implemented real-time status updates for incident dashboard
+- Added loading states and error handling
+- Updated incident list component to handle live updates
+
+## Testing
+- [x] Unit tests added for WebSocket service
+- [x] Integration tests updated for real-time features
+- [x] Manual testing in development environment
+- [x] Tested with multiple concurrent users
+
+## Breaking Changes
+None - all changes are backward compatible
+
+## Documentation Updates
+- Updated API_REFERENCE.md with WebSocket endpoints
+- Added real-time features section to FEATURES_DETAILED.md
+
+## Screenshots
+[Include relevant screenshots showing the new functionality]
+
+## Related Issues
+Closes #456
+Addresses #123
+```
+
+**PR Review Checklist for Contributors**
+Before submitting your PR, verify:
+- [ ] PR targets the `develop` branch (not `main` or `staging`)
+- [ ] All tests pass in CI/CD
+- [ ] Code follows project conventions
+- [ ] Documentation updated if applicable
+- [ ] No merge conflicts with develop branch
+- [ ] Commit messages follow conventional format
+- [ ] PR description clearly explains the changes
+
+#### 4. Documentation Contribution Best Practices
+
+**When to Update Documentation**
+- Adding new features → Update relevant `.md` files in `/docs`
+- Changing APIs → Update `API_REFERENCE.md`
+- Modifying setup process → Update `GETTING_STARTED.md`
+- Changing architecture → Update `PROJECT_ARCHITECTURE.md`
+
+**Documentation Writing Guidelines**
+```markdown
+# ✅ Good: Clear, actionable documentation
+## Setting Up Authentication
+
+1. Install required dependencies:
+   ```bash
+   npm install @next-auth/prisma-adapter
+   ```
+
+2. Configure environment variables:
+   ```bash
+   NEXTAUTH_SECRET=your-secret-key
+   NEXTAUTH_URL=http://localhost:3000
+   ```
+
+3. Test the setup:
+   ```bash
+   npm run test:auth
+   ```
+
+# ❌ Avoid: Vague, incomplete instructions
+## Authentication
+Set up auth stuff and it should work.
+```
+
+#### 5. Collaboration Best Practices
+
+**Communication Guidelines**
+- Comment on issues before starting work to avoid duplication
+- Ask questions if requirements are unclear
+- Share progress updates for large features
+- Respond to code review feedback promptly
+- Help review other contributors' pull requests
+
+**Handling Conflicts and Issues**
+```bash
+# If your branch conflicts with develop:
+git checkout feature/my-feature
+git fetch upstream
+git rebase upstream/develop
+
+# Resolve conflicts in your editor
+# Then continue the rebase
+git rebase --continue
+
+# Force push your rebased branch (be careful!)
+git push --force-with-lease origin feature/my-feature
+```
+
+#### 6. Testing in Different Environments
+
+**Development Environment Testing**
+```bash
+# Your local development environment includes:
+npm run dev  # Full application with documentation
+# Available at: http://localhost:3000
+# Includes: All features, debug mode, full error details
+```
+
+**Understanding Environment Differences**
+- **Development** (`develop` branch): Full features + documentation
+- **Staging** (maintainer managed): Production-like testing without docs
+- **Production** (`main` branch): Live environment, no development docs
+
+**Testing Your Changes**
+1. **Local Development**: Test all functionality works
+2. **Cross-browser**: Test in multiple browsers
+3. **Responsive Design**: Test on different screen sizes
+4. **Accessibility**: Ensure keyboard navigation and screen readers work
+5. **Performance**: Check that changes don't slow down the application
+
+#### 7. Security and Privacy Best Practices
+
+**Security Considerations**
+- Never commit credentials or API keys
+- Use environment variables for sensitive data
+- Follow authentication/authorization patterns
+- Validate all user inputs
+- Sanitize data before database operations
+
+**Privacy Guidelines**
+- Don't include real personal data in tests
+- Use mock data for development
+- Follow data protection best practices
+- Respect user privacy in all implementations
+
+#### 8. Performance Best Practices
+
+**Frontend Performance**
+```typescript
+// ✅ Good: Optimize component rendering
+import { memo, useMemo, useCallback } from 'react';
+
+export const OptimizedComponent = memo(({ data, onUpdate }) => {
+  const processedData = useMemo(() => {
+    return heavyProcessing(data);
+  }, [data]);
+
+  const handleUpdate = useCallback((newData) => {
+    onUpdate(newData);
+  }, [onUpdate]);
+
+  return <div>{/* Component JSX */}</div>;
+});
+
+// ❌ Avoid: Unnecessary re-renders
+export const UnoptimizedComponent = ({ data, onUpdate }) => {
+  const processedData = heavyProcessing(data); // Runs on every render
+  return <div>{/* Component JSX */}</div>;
+};
+```
+
+**Database Performance**
+```typescript
+// ✅ Good: Efficient database queries
+const getIncidentsWithPagination = async (page: number, limit: number) => {
+  return await db.incident.findMany({
+    skip: (page - 1) * limit,
+    take: limit,
+    include: { location: true }, // Only include needed relations
+    orderBy: { createdAt: 'desc' }
+  });
+};
+
+// ❌ Avoid: Loading unnecessary data
+const getAllIncidents = async () => {
+  return await db.incident.findMany({
+    include: { 
+      location: true, 
+      reports: true, 
+      attachments: true // Might be too much data
+    }
+  });
+};
+```
+
+### 🛠️ Common Contribution Scenarios
+
+#### Scenario 1: Adding a New Feature
+```bash
+# 1. Start from develop
+git checkout develop && git pull upstream develop
+
+# 2. Create feature branch
+git checkout -b feature/incident-priority-filtering
+
+# 3. Develop your feature
+# - Add components
+# - Write tests
+# - Update documentation
+
+# 4. Test thoroughly
+npm run test && npm run build
+
+# 5. Submit PR to develop branch
+```
+
+#### Scenario 2: Fixing a Bug
+```bash
+# 1. Start from develop
+git checkout develop && git pull upstream develop
+
+# 2. Create fix branch
+git checkout -b fix/dashboard-loading-error
+
+# 3. Fix the issue
+# - Identify root cause
+# - Implement fix
+# - Add regression tests
+
+# 4. Test the fix
+npm run test && npm run dev
+
+# 5. Submit PR to develop branch
+```
+
+#### Scenario 3: Updating Documentation
+```bash
+# 1. Start from develop (documentation is in /docs folder)
+git checkout develop && git pull upstream develop
+
+# 2. Create docs branch
+git checkout -b docs/api-endpoint-documentation
+
+# 3. Update documentation
+# - Edit relevant .md files in /docs
+# - Ensure clarity and accuracy
+# - Test any code examples
+
+# 4. Submit PR to develop branch
+```
+
+#### Scenario 4: Emergency Hotfix (Advanced Contributors Only)
+```bash
+# Note: Hotfixes are typically handled by maintainers
+# But in emergencies, follow this process:
+
+# 1. Start from main (production branch)
+git checkout main && git pull upstream main
+
+# 2. Create hotfix branch
+git checkout -b hotfix/critical-security-patch
+
+# 3. Make minimal, focused fix
+# - Address only the critical issue
+# - Include thorough testing
+# - Document the emergency fix
+
+# 4. Submit PR to main branch
+# 5. Ensure fix gets merged back to develop and staging
+```
+
+This comprehensive workflow ensures that:
+- All contributions go through proper review process
+- Code quality remains high across all environments
+- Documentation stays current and accessible
+- Team collaboration is efficient and effective
+- Production stability is maintained through proper testing phases

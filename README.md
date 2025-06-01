@@ -26,6 +26,7 @@
 
 ### Development & Deployment
 - **[💻 Development Guide](docs/DEVELOPMENT_GUIDE.md)** - Coding standards and best practices
+- **[🎯 Three-Branch Workflow](docs/THREE_BRANCH_WORKFLOW_BEST_PRACTICES.md)** - Comprehensive Git workflow guide
 - **[🔐 Authentication System](docs/AUTHENTICATION_SYSTEM.md)** - Security and database schema
 - **[📡 API Reference](docs/API_REFERENCE.md)** - Complete API documentation
 - **[🚀 Deployment Guide](docs/DEPLOYMENT_GUIDE.md)** - Production deployment instructions
