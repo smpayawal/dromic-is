@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Menu, X, User, Bell, Search, Globe, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import ProfileDropdown from './components/ProfileDropdown';
 import { getUserSession, UserData, logoutUser } from '@/lib/utils/auth';
 
@@ -23,17 +23,12 @@ const Navbar: React.FC = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [user, setUser] = useState<UserData | null>(null);
-  const [activePath, setActivePath] = useState('');
+  const pathname = usePathname();
+  // 'pathname' holds the current route for active link highlighting
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
-  // Get active path for link styling
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      setActivePath(window.location.pathname);
-    }
-  }, []);
 
   // Fetch user data on component mount
   useEffect(() => {
@@ -43,7 +38,6 @@ const Navbar: React.FC = () => {
         if (session.isLoggedIn && session.user) {
           setUser(session.user);
         } else {
-          // Redirect to login if not authenticated
           router.push('/login');
         }
       } catch (error) {
@@ -53,9 +47,9 @@ const Navbar: React.FC = () => {
         setIsLoading(false);
       }
     };
-
     fetchUser();
-  }, [router]);const toggleMobileMenu = () => {
+  }, [router]);
+  const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
   };
 
@@ -77,8 +71,8 @@ const Navbar: React.FC = () => {
   // Check if any dropdown item is active for a parent nav item
   const isParentActive = (link: NavLink) => {
     if (!link.hasDropdown || !link.dropdownItems) return false;
-    return link.dropdownItems.some(item => activePath.startsWith(item.href));
-  };  // Close profile menu and main dropdowns if clicking outside
+    return link.dropdownItems.some(item => pathname?.startsWith(item.href));
+  };
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       // On mobile, allow dropdown toggle without closing on outside click
@@ -321,11 +315,11 @@ const Navbar: React.FC = () => {
                       href={link.href}
                       className={cn(
                         "whitespace-nowrap px-2 md:px-3 lg:px-3 xl:px-5 py-2 md:py-2.5 rounded-md text-sm md:text-base lg:text-sm xl:text-base font-medium transition duration-150 ease-in-out hover:bg-gov-blue-light focus:outline-none focus:ring-2 focus:ring-gov-yellow flex items-center space-x-1 min-h-[42px]",
-                        activePath === link.href
+                        pathname === link.href
                           ? 'bg-gov-blue-light text-gov-yellow'
                           : 'text-gray-200 hover:text-white'
                       )}
-                      aria-current={activePath === link.href ? 'page' : undefined}
+                      aria-current={pathname === link.href ? 'page' : undefined}
                     >
                       <span className="truncate hidden md:block lg:hidden">{link.shortLabel}</span>
                       <span className="truncate hidden lg:block">{link.label}</span>
@@ -346,7 +340,7 @@ const Navbar: React.FC = () => {
                           href={item.href}
                           className={cn(
                             "block px-4 py-3 text-sm transition duration-150 ease-in-out min-h-[44px] flex items-center",
-                            activePath === item.href
+                            pathname === item.href
                               ? "bg-gov-blue text-white font-medium"
                               : "text-dashboard-text-primary hover:bg-gray-100 hover:text-dashboard-text-primary"
                           )}
@@ -418,11 +412,11 @@ const Navbar: React.FC = () => {
                     href={link.href}
                     className={cn(
                       "block px-4 py-3 rounded-md text-base font-medium transition duration-150 ease-in-out hover:bg-gov-blue-light focus:outline-none focus:ring-2 focus:ring-gov-yellow flex items-center justify-between min-h-[48px]",
-                      activePath === link.href
+                      pathname === link.href
                         ? 'bg-gov-blue-light text-gov-yellow'
                         : 'text-gray-200 hover:text-white'
                     )}
-                    aria-current={activePath === link.href ? 'page' : undefined}
+                    aria-current={pathname === link.href ? 'page' : undefined}
                     onClick={() => {
                       setIsMobileMenuOpen(false);
                       setOpenDropdown(null);
@@ -440,7 +434,7 @@ const Navbar: React.FC = () => {
                         href={item.href}
                         className={cn(
                           "block px-4 py-2 rounded-md text-sm font-medium transition duration-150 ease-in-out min-h-[44px] flex items-center",
-                          activePath === item.href
+                          pathname === item.href
                             ? "bg-gov-blue-light text-gov-yellow"
                             : "text-gray-300 hover:bg-gov-blue-light hover:text-white"
                         )}
