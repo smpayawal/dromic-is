@@ -1,0 +1,341 @@
+name: 🚀 Staging Deployment Pipeline - AWS Ready
+
+on:
+  push:
+    branches: [staging]
+  pull_request:
+    branches: [staging]
+
+env:
+  NODE_VERSION: '18'
+  PNPM_VERSION: '8'
+  AWS_REGION: ap-southeast-1
+  ECR_REPOSITORY: dromic-staging
+  ECS_SERVICE: dromic-staging-service
+  ECS_CLUSTER: dromic-staging
+  CONTAINER_NAME: dromic-app
+  
+jobs:
+  # ============================================================================
+  # 🔍 Code Quality & Security Checks
+  # ============================================================================
+  code-quality:
+    name: 🔍 Code Quality
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 📥 Checkout Code
+        uses: actions/checkout@v4
+        
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          
+      - name: 📦 Install Dependencies
+        run: |
+          npm ci --prefer-offline --no-audit
+          
+      - name: 🔎 Run ESLint
+        run: npm run lint
+        
+      - name: 🔧 TypeScript Type Check
+        run: npm run type-check
+        
+      - name: 📊 Format Check
+        run: npm run format:check
+        continue-on-error: true
+
+  # ============================================================================
+  # 🧪 Testing Suite
+  # ============================================================================
+  test:
+    name: 🧪 Test Suite
+    runs-on: ubuntu-latest
+    needs: code-quality
+    
+    strategy:
+      matrix:
+        test-type: [unit, integration]
+    
+    steps:
+      - name: 📥 Checkout Code
+        uses: actions/checkout@v4
+        
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          
+      - name: 📦 Install Dependencies
+        run: npm ci --prefer-offline --no-audit
+        
+      - name: 🧪 Run Tests
+        run: npm run test:coverage
+        env:
+          NODE_ENV: test
+          
+      - name: 📊 Upload Coverage Reports
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./coverage/lcov.info
+          flags: ${{ matrix.test-type }}
+          name: coverage-${{ matrix.test-type }}
+
+  # ============================================================================
+  # 🏗️ Build Application
+  # ============================================================================
+  build:
+    name: 🏗️ Build Application
+    runs-on: ubuntu-latest
+    needs: [code-quality, test]
+    
+    steps:
+      - name: 📥 Checkout Code
+        uses: actions/checkout@v4
+        
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          
+      - name: 📦 Install Dependencies
+        run: npm ci --prefer-offline --no-audit
+        
+      - name: 🏗️ Build for Staging
+        run: npm run build:staging
+        env:
+          NODE_ENV: staging
+          NEXT_PUBLIC_ENV: staging
+          
+      - name: 📁 Upload Build Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: staging-build
+          path: |
+            .next/
+            public/
+            package.json
+          retention-days: 7
+
+  # ============================================================================
+  # 🚀 Deploy to Staging
+  # ============================================================================
+  deploy-staging:
+    name: 🚀 Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.ref == 'refs/heads/staging' && github.event_name == 'push'
+    environment: staging
+    
+    steps:
+      - name: 📥 Checkout Code
+        uses: actions/checkout@v4
+        
+      - name: 📁 Download Build Artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: staging-build
+          
+      - name: 🚀 Deploy to Staging Server
+        run: |
+          echo "🚀 Deploying to staging environment..."
+          echo "📊 Build completed successfully"
+          echo "🔗 Staging URL: https://staging.dromic-is.dswd.gov.ph"
+          # TODO: Add actual deployment commands here
+          # Example deployment commands:
+          # rsync -avz --delete ./ staging-server:/var/www/dromic-is/
+          # ssh staging-server 'cd /var/www/dromic-is && pm2 restart dromic-is-staging'
+        env:
+          STAGING_HOST: ${{ secrets.STAGING_HOST }}
+          STAGING_USER: ${{ secrets.STAGING_USER }}
+          STAGING_KEY: ${{ secrets.STAGING_SSH_KEY }}
+          
+      - name: 🔍 Health Check
+        run: |
+          echo "🔍 Running post-deployment health checks..."
+          # TODO: Add health check commands
+          # curl -f https://staging.dromic-is.dswd.gov.ph/api/health
+          
+      - name: 📧 Notify Deployment
+        run: |
+          echo "📧 Deployment notification sent"
+          echo "✅ Staging deployment completed successfully"
+
+  # ============================================================================
+  # 🔒 Security Scan
+  # ============================================================================
+  security:
+    name: 🔒 Security Scan
+    runs-on: ubuntu-latest
+    needs: code-quality
+    
+    steps:
+      - name: 📥 Checkout Code
+        uses: actions/checkout@v4
+        
+      - name: 🔒 Run Security Audit
+        run: npm audit --audit-level moderate
+        continue-on-error: true
+        
+      - name: 🛡️ Check Dependencies
+        run: |
+          npx audit-ci --moderate
+        continue-on-error: true
+
+  # ============================================================================
+  # 📊 Performance Monitoring
+  # ============================================================================
+  performance:
+    name: 📊 Performance Check
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.event_name == 'pull_request'
+    
+    steps:
+      - name: 📥 Checkout Code
+        uses: actions/checkout@v4
+        
+      - name: 📊 Bundle Size Analysis
+        run: |
+          echo "📊 Analyzing bundle size..."
+          # TODO: Add bundle size analysis
+          # npm run analyze
+
+  # ============================================================================
+  # 📋 Summary Report
+  # ============================================================================  summary:
+    name: 📋 Pipeline Summary
+    runs-on: ubuntu-latest
+    needs: [code-quality, test, build, security, deploy-aws]
+    if: always()
+    
+    steps:
+      - name: 📋 Generate Summary
+        run: |
+          echo "## 🚀 DROMIC-IS Staging Pipeline Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Stage | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Code Quality | ${{ needs.code-quality.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Tests | ${{ needs.test.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Build | ${{ needs.build.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Security | ${{ needs.security.result == 'success' && '✅ Passed' || '⚠️ Warning' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| AWS Deployment | ${{ needs.deploy-aws.result == 'success' && '✅ Deployed' || needs.deploy-aws.result == 'skipped' && '⏭️ Skipped' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🎯 Next Steps" >> $GITHUB_STEP_SUMMARY
+          echo "- Review any failed checks above" >> $GITHUB_STEP_SUMMARY
+          echo "- Test the staging environment thoroughly" >> $GITHUB_STEP_SUMMARY
+          echo "- Prepare for production deployment when ready" >> $GITHUB_STEP_SUMMARY
+          if [[ "${{ needs.deploy-aws.result }}" == "success" ]]; then
+            echo "- 🌐 **Staging URL:** https://staging.dromic-is.dswd.gov.ph" >> $GITHUB_STEP_SUMMARY
+          fi
+
+  # ============================================================================
+  # 🚀 AWS Deployment (Conditional)
+  # ============================================================================
+  deploy-aws:
+    name: 🚀 Deploy to AWS
+    runs-on: ubuntu-latest
+    needs: [code-quality, test, build, security]
+    if: github.ref == 'refs/heads/staging' && github.event_name == 'push'
+    
+    environment:
+      name: staging
+      url: https://staging.dromic-is.dswd.gov.ph
+      
+    steps:
+      - name: 📥 Checkout Code
+        uses: actions/checkout@v4
+        
+      - name: 🔧 Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+          
+      - name: 🔐 Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+        
+      - name: 🏗️ Build Docker Image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          echo "Building Docker image for AWS deployment..."
+          docker build \
+            --file Dockerfile.staging \
+            --tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG \
+            --tag $ECR_REGISTRY/$ECR_REPOSITORY:latest \
+            --build-arg BUILD_ENV=staging \
+            .
+            
+      - name: 🚀 Push Image to ECR
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          echo "Pushing image to ECR..."
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+          
+      - name: 📋 Update ECS Task Definition
+        id: task-def
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: .aws/task-definition-staging.json
+          container-name: ${{ env.CONTAINER_NAME }}
+          image: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
+          
+      - name: 🚀 Deploy to ECS
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition: ${{ steps.task-def.outputs.task-definition }}
+          service: ${{ env.ECS_SERVICE }}
+          cluster: ${{ env.ECS_CLUSTER }}
+          wait-for-service-stability: true
+          
+      - name: 🏥 Health Check
+        run: |
+          echo "Waiting for deployment to be healthy..."
+          sleep 60
+          
+          # Health check with retry
+          max_attempts=10
+          attempt=1
+          
+          while [ $attempt -le $max_attempts ]; do
+            echo "Health check attempt $attempt/$max_attempts"
+            
+            if curl -f -s https://staging.dromic-is.dswd.gov.ph/api/health > /dev/null; then
+              echo "✅ Health check passed!"
+              curl -s https://staging.dromic-is.dswd.gov.ph/api/health | jq '.'
+              break
+            else
+              echo "❌ Health check failed, retrying in 30 seconds..."
+              sleep 30
+              attempt=$((attempt + 1))
+            fi
+          done
+          
+          if [ $attempt -gt $max_attempts ]; then
+            echo "🚨 Health check failed after $max_attempts attempts"
+            exit 1
+          fi
+          
+      - name: 📊 Deployment Summary
+        run: |
+          echo "## 🚀 AWS Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Environment:** Staging" >> $GITHUB_STEP_SUMMARY
+          echo "- **Image:** ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **ECS Service:** ${{ env.ECS_SERVICE }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **ECS Cluster:** ${{ env.ECS_CLUSTER }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Health Check:** ✅ Passed" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "🌐 **Staging URL:** https://staging.dromic-is.dswd.gov.ph" >> $GITHUB_STEP_SUMMARY

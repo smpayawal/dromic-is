@@ -2,12 +2,109 @@
 	"version": "2.0.0",
 	"tasks": [
 		{
-			"label": "Run Development Server",
+			"label": "🚀 Run Development Server",
 			"type": "shell",
 			"command": "npm run dev",
 			"group": "build",
 			"isBackground": true,
-			"problemMatcher": []
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": false,
+				"panel": "new",
+				"showReuseMessage": true,
+				"clear": false
+			},
+			"problemMatcher": [
+				{
+					"pattern": [
+						{
+							"regexp": ".",
+							"file": 1,
+							"location": 2,
+							"message": 3
+						}
+					],
+					"background": {
+						"activeOnStart": true,
+						"beginsPattern": "- wait",
+						"endsPattern": "(Local:|ready)"
+					}
+				}
+			]
+		},
+		{
+			"label": "🏗️ Build for Staging",
+			"type": "shell",
+			"command": "npm run build:staging",
+			"group": "build",
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": false,
+				"panel": "shared",
+				"showReuseMessage": true,
+				"clear": true
+			},
+			"problemMatcher": ["$tsc"]
+		},
+		{
+			"label": "🧪 Run Tests",
+			"type": "shell",
+			"command": "npm test",
+			"group": "test",
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": false,
+				"panel": "shared",
+				"showReuseMessage": true,
+				"clear": true
+			}
+		},
+		{
+			"label": "🔍 Lint Code",
+			"type": "shell",
+			"command": "npm run lint",
+			"group": "build",
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": false,
+				"panel": "shared",
+				"showReuseMessage": true,
+				"clear": true
+			},
+			"problemMatcher": ["$eslint-stylish"]
+		},
+		{
+			"label": "🔧 Type Check",
+			"type": "shell",
+			"command": "npm run type-check",
+			"group": "build",
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": false,
+				"panel": "shared",
+				"showReuseMessage": true,
+				"clear": true
+			},
+			"problemMatcher": ["$tsc"]
+		},
+		{
+			"label": "🏥 Health Check",
+			"type": "shell",
+			"command": "npm run health-check",
+			"group": "test",
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": true,
+				"panel": "shared",
+				"showReuseMessage": true,
+				"clear": true
+			}
 		}
 	]
 }

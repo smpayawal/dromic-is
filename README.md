@@ -20,23 +20,20 @@
 
 ### Quick Access
 - **[🚀 Get Started](docs/GETTING_STARTED.md)** - Installation and setup guide
-- **[📖 Project Overview](docs/PROJECT_OVERVIEW.md)** - Purpose, vision, and target users
+- **[📖 Project Overview](#-about)** - Purpose, vision, and target users
 - **[⭐ Features](docs/FEATURES_DETAILED.md)** - Comprehensive feature list
 - **[🏗️ Architecture](docs/PROJECT_ARCHITECTURE.md)** - Project structure and design patterns
 
 ### Development & Deployment
 - **[💻 Development Guide](docs/DEVELOPMENT_GUIDE.md)** - Coding standards and best practices
 - **[🎯 Three-Branch Workflow](docs/THREE_BRANCH_WORKFLOW_BEST_PRACTICES.md)** - Comprehensive Git workflow guide
-- **[🔐 Authentication System](docs/AUTHENTICATION_SYSTEM.md)** - Security and database schema
-- **[📡 API Reference](docs/API_REFERENCE.md)** - Complete API documentation
-- **[🚀 Deployment Guide](docs/DEPLOYMENT_GUIDE.md)** - Production deployment instructions
+### 🚀 **Cloud Deployment (For Cloud Team)**
+- **[☁️ Cloud Deployment Guide](docs/CLOUD_DEPLOYMENT_GUIDE.md)** - **Complete deployment guide (AWS-ready, 13 variables only)**
 
-### Support & Community
-- **[🤝 Contributing](docs/CONTRIBUTING_GUIDE.md)** - How to contribute to the project
-- **[📞 Support](docs/SUPPORT_GUIDE.md)** - Get help and troubleshooting
-- **[📊 Project Status](docs/PROJECT_STATUS_ROADMAP.md)** - Current status and roadmap
-- **[🛠️ Tech Stack](docs/TECH_STACK_DETAILED.md)** - Technology choices and configurations
-- **[📋 Documentation Monitoring](docs/DOCUMENTATION_MONITORING_CHECKLIST.md)** - Maintenance checklist
+### 📚 **Additional Information**
+- **GitHub Issues** - Bug reports and feature requests
+- **GitHub Wiki** - Community documentation and guides
+- **Health Check** - `/api/health` endpoint for system status
 
 ## 📋 Table of Contents
 
@@ -59,7 +56,8 @@ DROMIC-IS is a comprehensive disaster response management system designed specif
 - **⚡ Real-Time**: Live updates and activity monitoring
 - **🏛️ Government-Ready**: Compliance with government design and security standards
 
-> **[Learn More →](docs/PROJECT_OVERVIEW.md)** - Detailed project vision, target users, and objectives
+### 🎯 **For Cloud Teams**
+This staging branch is **production-ready** and requires only **13 environment variable updates** for AWS deployment. See the [Cloud Deployment Guide](docs/CLOUD_DEPLOYMENT_GUIDE.md) for complete instructions.
 
 ## ⚡ Quick Start
 

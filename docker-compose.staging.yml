@@ -1,0 +1,124 @@
+version: '3.8'
+
+services:
+  # DROMIC-IS Application
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.staging
+      args:
+        BUILD_ENV: staging
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=staging
+    env_file:
+      - .env.staging
+    depends_on:
+      - postgres
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - dromic-network
+
+  # PostgreSQL Database (for local testing)
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: dromic_db
+      POSTGRES_USER: username
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init:/docker-entrypoint-initdb.d
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U username -d dromic_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - dromic-network
+
+  # Redis (for session management and caching)
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - dromic-network
+
+  # Nginx (reverse proxy and static file serving)
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/staging.conf:/etc/nginx/conf.d/default.conf
+      - ./ssl:/etc/nginx/ssl
+    depends_on:
+      - app
+    restart: unless-stopped
+    networks:
+      - dromic-network
+
+volumes:
+  postgres_data:
+
+networks:
+  dromic-network:
+    driver: bridge
+
+# AWS ECS Task Definition equivalent
+# Use this as reference for ECS deployment
+x-aws-ecs-task-definition: &ecs-task
+  family: dromic-staging
+  networkMode: awsvpc
+  requiresCompatibilities:
+    - FARGATE
+  cpu: 512
+  memory: 1024
+  executionRoleArn: arn:aws:iam::ACCOUNT:role/ecsTaskExecutionRole
+  taskRoleArn: arn:aws:iam::ACCOUNT:role/ecsTaskRole
+  containerDefinitions:
+    - name: dromic-app
+      image: ACCOUNT.dkr.ecr.REGION.amazonaws.com/dromic-staging:latest
+      portMappings:
+        - containerPort: 3000
+          protocol: tcp
+      environment:
+        - name: NODE_ENV
+          value: staging
+      secrets:
+        - name: DATABASE_URL
+          valueFrom: arn:aws:secretsmanager:REGION:ACCOUNT:secret:dromic/staging/database
+        - name: JWT_SECRET
+          valueFrom: arn:aws:secretsmanager:REGION:ACCOUNT:secret:dromic/staging/jwt
+      logConfiguration:
+        logDriver: awslogs
+        options:
+          awslogs-group: /ecs/dromic-staging
+          awslogs-region: ap-southeast-1
+          awslogs-stream-prefix: ecs
+      healthCheck:
+        command:
+          - CMD-SHELL
+          - curl -f http://localhost:3000/api/health || exit 1
+        interval: 30
+        timeout: 5
+        retries: 3
+        startPeriod: 60

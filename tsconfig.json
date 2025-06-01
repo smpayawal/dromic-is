@@ -1,6 +1,5 @@
-{
-  "compilerOptions": {
-    "types": ["node", "react"],
+{  "compilerOptions": {
+    "types": ["node", "react", "jest"],
     "target": "ES2017",
     "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
