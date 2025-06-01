@@ -16,7 +16,7 @@ const nextConfig: NextConfig = {
   },
 
   // Staging-specific configurations
-  ...(process.env.NODE_ENV === 'staging' && {
+  ...(process.env.APP_ENV === 'staging' && {
     // Enable source maps for debugging in staging
     productionBrowserSourceMaps: true,
     
