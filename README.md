@@ -30,6 +30,9 @@
 ### 🚀 **Cloud Deployment (For Cloud Team)**
 - **[☁️ Cloud Deployment Guide](docs/CLOUD_DEPLOYMENT_GUIDE.md)** - **Complete deployment guide (AWS-ready, 13 variables only)**
 
+### 📚 **Technical Documentation**
+- **[🧪 Test Suite Documentation](docs/TEST_MONITORING_DOCUMENTATION.md)** - **Comprehensive testing framework and monitoring guide**
+
 ### 📚 **Additional Information**
 - **GitHub Issues** - Bug reports and feature requests
 - **GitHub Wiki** - Community documentation and guides
