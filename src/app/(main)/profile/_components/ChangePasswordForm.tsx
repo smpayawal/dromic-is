@@ -162,6 +162,7 @@ const ChangePasswordForm: React.FC<ChangePasswordFormProps> = ({ onPasswordChang
         body: JSON.stringify({
           currentPassword: formData.currentPassword,
           newPassword: formData.newPassword,
+          confirmNewPassword: formData.confirmPassword,
         }),
       });
 
@@ -170,7 +171,7 @@ const ChangePasswordForm: React.FC<ChangePasswordFormProps> = ({ onPasswordChang
       if (response.ok) {
         setMessage('Password changed successfully!');
         setMessageType('success');
-        
+        setTimeout(() => setMessage(''), 2000);
         // Reset form
         setFormData({
           currentPassword: '',

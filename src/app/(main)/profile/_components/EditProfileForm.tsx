@@ -193,6 +193,7 @@ const EditProfileForm: React.FC<EditProfileFormProps> = ({ user, onUpdate }) => 
       if (response.ok) {
         setMessage('Profile updated successfully!');
         setMessageType('success');
+        setTimeout(() => setMessage(''), 2000);
         setIsEditing(false);
         onUpdate(); // Refresh user data
       } else {

@@ -70,18 +70,16 @@ export async function PATCH(request: NextRequest) {
           request.headers.get('user-agent') || 'Unknown',
           'success'
         ]
-      );
-
-      // Update profile
+      );      // Update profile
       const updateResult = await query(
         `UPDATE profile SET 
           firstname = $1, lastname = $2, middlename = $3, phone_number = $4,
           address = $5, job_title = $6, division = $7, region = $8,
-          province = $9, city = $10, barangay = $11, date_of_birth = $12,
-          updated_at = CURRENT_TIMESTAMP
-        FROM account 
-        WHERE profile.id = account."profileId" AND account.id = $13
-        RETURNING profile.id`,
+          province = $9, city = $10, barangay = $11, date_of_birth = $12
+        WHERE id = (
+          SELECT "profileId" FROM account WHERE id = $13
+        )
+        RETURNING id`,
         [
           validatedData.firstName,
           validatedData.lastName,
@@ -143,12 +141,10 @@ export async function PATCH(request: NextRequest) {
           request.headers.get('user-agent') || 'Unknown',
           'success'
         ]
-      );
-
-      // Update account
+      );      // Update account
       const updateResult = await query(
         `UPDATE account SET 
-          username = $1, email = $2, updated_at = CURRENT_TIMESTAMP
+          username = $1, email = $2
         WHERE id = $3
         RETURNING id`,
         [validatedData.username, validatedData.email, payload.userId]

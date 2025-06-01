@@ -87,12 +87,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Hash new password
-    const hashedNewPassword = await hashPassword(validatedData.newPassword);
-
-    // Update password
+    const hashedNewPassword = await hashPassword(validatedData.newPassword);    // Update password
     const updateResult = await query(
       `UPDATE account SET 
-        password = $1, updated_at = CURRENT_TIMESTAMP
+        password = $1
       WHERE id = $2
       RETURNING id`,
       [hashedNewPassword, payload.userId]

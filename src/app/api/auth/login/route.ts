@@ -145,14 +145,12 @@ export async function POST(request: NextRequest) {
       // Lock account after 5 failed attempts for 15 minutes
       if (newFailedAttempts >= 5) {
         lockUntil = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes from now
-      }
-
-      await query(
+      }      await query(
         `UPDATE account 
-         SET failed_login_attempts = $1, account_locked_until = $2, updated_at = $3
-         WHERE id = $4`,
-        [newFailedAttempts, lockUntil, new Date().toISOString(), user.id]
-      );      // Log failed login attempt for invalid password
+         SET failed_login_attempts = $1, account_locked_until = $2
+         WHERE id = $3`,
+        [newFailedAttempts, lockUntil, user.id]
+      );// Log failed login attempt for invalid password
       await logActivity(
         user.id,
         'failed_login',
@@ -180,10 +178,10 @@ export async function POST(request: NextRequest) {
     await query(
       `UPDATE account 
        SET failed_login_attempts = 0, account_locked_until = NULL, 
-           last_login = $1, updated_at = $2
-       WHERE id = $3`,
-      [new Date().toISOString(), new Date().toISOString(), user.id]
-    );    // Generate JWT token first to get session info
+           last_login = $1
+       WHERE id = $2`,
+      [new Date().toISOString(), user.id]
+    );// Generate JWT token first to get session info
     const sessionId = require('crypto').randomUUID();
     const token = generateToken({
       userId: user.id,
