@@ -6,6 +6,7 @@ import TextInput from '@/components/ui/form-fields/text-input';
 import LocationDropdown from '@/components/ui/form-fields/location-dropdown';
 import { Button } from '@/components/ui/form-fields/button';
 import { useLocationDropdown } from '@/lib/hooks/useLocationDropdown';
+import { useUser } from '@/lib/contexts/UserContext';
 import { User, Phone, MapPin, Calendar, Briefcase, Save, X } from 'lucide-react';
 
 interface EditProfileFormProps {
@@ -33,6 +34,9 @@ const EditProfileForm: React.FC<EditProfileFormProps> = ({ user, onUpdate }) => 
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState<'success' | 'error' | ''>('');
   const [isEditing, setIsEditing] = useState(false);
+  
+  // Get UserContext to update global user state
+  const { refreshUser } = useUser();
 
   // Initialize form data with user's current data
   const [formData, setFormData] = useState<ProfileFormData>({
@@ -188,14 +192,15 @@ const EditProfileForm: React.FC<EditProfileFormProps> = ({ user, onUpdate }) => 
         }),
       });
 
-      const result = await response.json();
-
-      if (response.ok) {
+      const result = await response.json();      if (response.ok) {
         setMessage('Profile updated successfully!');
         setMessageType('success');
         setTimeout(() => setMessage(''), 2000);
         setIsEditing(false);
-        onUpdate(); // Refresh user data
+        
+        // Update both local state and global UserContext
+        onUpdate(); // Refresh local user data in profile page
+        await refreshUser(); // Refresh global user data for navigation
       } else {
         setMessage(result.error || 'Failed to update profile');
         setMessageType('error');

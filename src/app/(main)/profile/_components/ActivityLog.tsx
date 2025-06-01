@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { Activity, Calendar, MapPin, Monitor, Eye, Filter, ChevronDown, ChevronUp } from 'lucide-react';
+import { Activity, Calendar, MapPin, Monitor, Eye, Filter, ChevronDown, ChevronUp, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/form-fields/button';
 
 interface ActivityLogEntry {
@@ -35,18 +35,15 @@ const ActivityLog: React.FC<ActivityLogProps> = ({ userId }) => {
     activity_category: '',
     days: 30
   });
-  const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
-
-  const activityTypes = [
+  const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());  const activityTypes = [
     'login', 'logout', 'create', 'update', 'delete', 'view', 
     'validate', 'export', 'import', 'download', 'upload', 
-    'assign', 'search', 'filter', 'approve', 'reject'
+    'assign', 'search', 'filter', 'approve', 'reject', 'failed_login'
   ];
-
   const activityCategories = [
     'session', 'incident', 'evacuation', 'assistance', 
-    'system', 'user', 'data', 'report', 'account'
-  ];  const fetchActivities = async (resetData = false) => {
+    'system', 'user', 'data', 'report', 'account', 'security'
+  ];const fetchActivities = async (resetData = false) => {
     try {
       setIsLoading(true);
       const currentPage = resetData ? 1 : page;
@@ -109,9 +106,14 @@ const ActivityLog: React.FC<ActivityLogProps> = ({ userId }) => {
       }
       return newSet;
     });
-  };
-
-  const getActivityIcon = (type: string, category: string) => {
+  };  const getActivityIcon = (type: string, category: string, actionDetails?: any) => {
+    const details = typeof actionDetails === 'object' ? actionDetails : {};
+    const isPasswordChange = details?.attempt_type === 'password_change' || 
+                           details?.security_event === 'password_change';
+    
+    if (isPasswordChange || category === 'security') {
+      return <Shield className="h-4 w-4" />;
+    }
     if (category === 'session') {
       return <Monitor className="h-4 w-4" />;
     }
@@ -119,9 +121,11 @@ const ActivityLog: React.FC<ActivityLogProps> = ({ userId }) => {
       return <Activity className="h-4 w-4" />;
     }
     return <Eye className="h-4 w-4" />;
-  };
-
-  const getActivityColor = (type: string, status: string) => {
+  };  const getActivityColor = (type: string, status: string, actionDetails?: any) => {
+    const details = typeof actionDetails === 'object' ? actionDetails : {};
+    const isPasswordChange = details?.attempt_type === 'password_change' || 
+                           details?.security_event === 'password_change';
+    
     if (status !== 'success') return 'text-red-600 bg-red-50';
     
     switch (type) {
@@ -129,10 +133,15 @@ const ActivityLog: React.FC<ActivityLogProps> = ({ userId }) => {
         return 'text-green-600 bg-green-50';
       case 'logout':
         return 'text-gray-600 bg-gray-50';
+      case 'failed_login':
+        return 'text-red-600 bg-red-50';
+      case 'update':
+        if (isPasswordChange) {
+          return 'text-purple-600 bg-purple-50';
+        }
+        return 'text-yellow-600 bg-yellow-50';
       case 'create':
         return 'text-blue-600 bg-blue-50';
-      case 'update':
-        return 'text-yellow-600 bg-yellow-50';
       case 'delete':
         return 'text-red-600 bg-red-50';
       default:
@@ -165,22 +174,34 @@ const ActivityLog: React.FC<ActivityLogProps> = ({ userId }) => {
       });
     }
   };
-
   const getActivityDescription = (activity: ActivityLogEntry) => {
-    const { activity_type, activity_category, target_name, target_table } = activity;
+    const { activity_type, activity_category, target_name, target_table, action_details } = activity;
     
     let action = activity_type.charAt(0).toUpperCase() + activity_type.slice(1);
     let target = target_name || target_table || activity_category;
+    
+    // Check action_details for password change context
+    const details = typeof action_details === 'object' ? action_details : {};
+    const isPasswordChange = details?.attempt_type === 'password_change' || 
+                           details?.security_event === 'password_change';
     
     switch (activity_type) {
       case 'login':
         return 'Signed in to the system';
       case 'logout':
         return 'Signed out of the system';
+      case 'failed_login':
+        if (isPasswordChange) {
+          return 'Failed password change attempt';
+        }
+        return 'Failed login attempt';
+      case 'update':
+        if (isPasswordChange) {
+          return 'Changed account password';
+        }
+        return `Updated ${target}`;
       case 'create':
         return `Created ${target}`;
-      case 'update':
-        return `Updated ${target}`;
       case 'delete':
         return `Deleted ${target}`;
       case 'view':
@@ -298,10 +319,9 @@ const ActivityLog: React.FC<ActivityLogProps> = ({ userId }) => {
               
               return (
                 <div key={activity.log_id} className="p-6">
-                  <div className="flex items-start space-x-4">
-                    {/* Icon */}
-                    <div className={`p-2 rounded-lg ${getActivityColor(activity.activity_type, activity.status)}`}>
-                      {getActivityIcon(activity.activity_type, activity.activity_category)}
+                  <div className="flex items-start space-x-4">                    {/* Icon */}
+                    <div className={`p-2 rounded-lg ${getActivityColor(activity.activity_type, activity.status, activity.action_details)}`}>
+                      {getActivityIcon(activity.activity_type, activity.activity_category, activity.action_details)}
                     </div>
 
                     {/* Content */}

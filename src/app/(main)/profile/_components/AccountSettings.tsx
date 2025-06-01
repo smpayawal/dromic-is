@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
+import { useUser } from '@/lib/contexts/UserContext';
 import { Settings, Shield, Bell, Eye, Lock, Trash2, Download, Globe, Moon, Sun } from 'lucide-react';
 import { Button } from '@/components/ui/form-fields/button';
 
@@ -40,6 +41,9 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ onSettingsChanged }) 
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState<'success' | 'error' | ''>('');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  
+  // Get UserContext to update global user state (for future use)
+  const { refreshUser } = useUser();
 
   const [settings, setSettings] = useState<SettingsData>({
     notifications: {

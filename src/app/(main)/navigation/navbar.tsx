@@ -7,7 +7,8 @@ import { Menu, X, User, Bell, Search, Globe, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useRouter, usePathname } from 'next/navigation';
 import ProfileDropdown from './components/ProfileDropdown';
-import { getUserSession, UserData, logoutUser } from '@/lib/utils/auth';
+import { logoutUser } from '@/lib/utils/auth';
+import { useUser } from '@/lib/contexts/UserContext';
 
 // Enhanced navigation link interface with dropdown support
 interface NavLink {
@@ -22,33 +23,13 @@ interface NavLink {
 const Navbar: React.FC = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const [user, setUser] = useState<UserData | null>(null);
+  const { user, isLoading } = useUser();
   const pathname = usePathname();
   // 'pathname' holds the current route for active link highlighting
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
-
-  // Fetch user data on component mount
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const session = await getUserSession();
-        if (session.isLoggedIn && session.user) {
-          setUser(session.user);
-        } else {
-          router.push('/login');
-        }
-      } catch (error) {
-        console.error('Error fetching user session:', error);
-        router.push('/login');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchUser();
-  }, [router]);
+  // No need to fetch user data here anymore - UserContext handles it
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
   };
@@ -112,16 +93,14 @@ const Navbar: React.FC = () => {
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [isProfileOpen, openDropdown]);
-  // Logout handler
+  }, [isProfileOpen, openDropdown]);  // Logout handler
   const handleLogout = async () => {
     try {
       setIsProfileOpen(false);
       await logoutUser(); // This will redirect to login page
     } catch (error) {
       console.error('Logout error:', error);
-      // Clear user state and redirect even if logout request fails
-      setUser(null);
+      // Redirect even if logout request fails
       window.location.href = '/login';
     }
   };const navLinksConfig: NavLink[] = [

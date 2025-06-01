@@ -55,13 +55,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const user = userResult.rows[0];
-
-    // Verify current password
+    const user = userResult.rows[0];    // Verify current password
     const isCurrentPasswordValid = await comparePassword(validatedData.currentPassword, user.password);
 
-    if (!isCurrentPasswordValid) {
-      // Log failed password change attempt
+    if (!isCurrentPasswordValid) {      // Log failed password change attempt with enhanced security details
       await query(
         `INSERT INTO activity_log (
           account_id, activity_type, activity_category, target_table, 
@@ -69,11 +66,19 @@ export async function POST(request: NextRequest) {
         ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
         [
           payload.userId,
-          'update',
-          'account',
+          'login',         // Use valid activity type (failed login attempt)
+          'session',       // Use valid activity category 
           'account',
           payload.userId,
-          JSON.stringify({ message: 'Failed password change attempt - invalid current password' }),
+          JSON.stringify({ 
+            message: 'Failed password change attempt - invalid current password',
+            reason: 'invalid_current_password',
+            security_alert: true,
+            timestamp: new Date().toISOString(),
+            attempt_type: 'password_change',
+            risk_level: 'medium',
+            authentication_method: 'password_change_form'
+          }),
           request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || '::1',
           request.headers.get('user-agent') || 'Unknown',
           'failed'
@@ -86,36 +91,84 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Hash new password
-    const hashedNewPassword = await hashPassword(validatedData.newPassword);    // Update password
-    const updateResult = await query(
-      `UPDATE account SET 
-        password = $1
-      WHERE id = $2
-      RETURNING id`,
-      [hashedNewPassword, payload.userId]
+    // Get current account state before password update for audit trail
+    const beforeStateResult = await query(
+      `SELECT 
+        id, username, email, status, last_login, created_at, updated_at,
+        last_password_changed_at, failed_login_attempts, account_locked_until
+      FROM account WHERE id = $1`,
+      [payload.userId]
     );
 
-    if (updateResult.rows.length === 0) {
+    const beforeState = beforeStateResult.rows[0] || null;
+
+    // Hash new password
+    const hashedNewPassword = await hashPassword(validatedData.newPassword);
+
+    // Update password with last_password_changed_at and return updated state
+    const updateResult = await query(
+      `UPDATE account SET 
+        password = $1,
+        last_password_changed_at = NOW(),
+        updated_at = NOW()
+      WHERE id = $2
+      RETURNING id, username, email, status, last_login, created_at, updated_at,
+                last_password_changed_at, failed_login_attempts, account_locked_until`,
+      [hashedNewPassword, payload.userId]
+    );    if (updateResult.rows.length === 0) {
       return NextResponse.json(
         { error: 'Password update failed' },
         { status: 500 }
       );
     }
 
-    // Log successful password change
+    const afterState = updateResult.rows[0];
+
+    // Prepare enhanced security details for audit log
+    const securityDetails = {
+      message: 'Password changed successfully',
+      security_event: 'password_change',
+      password_policy_compliant: true,
+      timestamp: new Date().toISOString(),
+      previous_password_changed: beforeState?.last_password_changed_at,
+      security_context: {
+        user_agent: request.headers.get('user-agent') || 'Unknown',
+        accept_language: request.headers.get('accept-language') || 'Unknown',
+        origin: request.headers.get('origin') || 'Unknown',
+        referer: request.headers.get('referer') || 'Direct'
+      },
+      account_security: {
+        failed_login_attempts: beforeState?.failed_login_attempts || 0,
+        account_locked: beforeState?.account_locked_until ? new Date(beforeState.account_locked_until) > new Date() : false,
+        last_login: beforeState?.last_login
+      },
+      audit_metadata: {
+        changed_fields: ['password', 'last_password_changed_at', 'updated_at'],
+        changes_count: 3,
+        compliance_level: 'high'
+      }
+    };    // Log successful password change with complete audit trail
     await query(
       `INSERT INTO activity_log (
         account_id, activity_type, activity_category, target_table, 
-        target_id, action_details, ip_address, device_info, status
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+        target_id, action_details, before_state, after_state,
+        ip_address, device_info, status
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
       [
         payload.userId,
-        'update',
-        'account',
+        'update',        // Use valid activity type
+        'account',       // Use valid activity category
         'account',
         payload.userId,
-        JSON.stringify({ message: 'Password changed successfully' }),
+        JSON.stringify(securityDetails),
+        JSON.stringify({
+          ...beforeState,
+          password: '[REDACTED]' // Never log actual password hashes
+        }),
+        JSON.stringify({
+          ...afterState,
+          password: '[REDACTED]' // Never log actual password hashes
+        }),
         request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || '::1',
         request.headers.get('user-agent') || 'Unknown',
         'success'

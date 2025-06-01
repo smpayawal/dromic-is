@@ -1,7 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import { getUserSession, UserData } from '@/lib/utils/auth';
+import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import ProfileHeader from './_components/ProfileHeader';
 import EditProfileForm from './_components/EditProfileForm';
@@ -9,6 +8,7 @@ import ChangePasswordForm from './_components/ChangePasswordForm';
 import ActivityLog from './_components/ActivityLog';
 import AccountSettings from './_components/AccountSettings';
 import { User, Lock, Activity, Settings } from 'lucide-react';
+import { useUser } from '@/lib/contexts/UserContext';
 
 type TabType = 'profile' | 'password' | 'activity' | 'settings';
 
@@ -20,42 +20,15 @@ const tabs = [
 ];
 
 export default function ProfilePage() {
-  const [user, setUser] = useState<UserData | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<TabType>('profile');
   const router = useRouter();
+  
+  // Use UserContext instead of local state
+  const { user, isLoading, refreshUser } = useUser();
 
-  // Fetch user data on component mount
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const session = await getUserSession();
-        if (session.isLoggedIn && session.user) {
-          setUser(session.user);
-        } else {
-          router.push('/login');
-        }
-      } catch (error) {
-        console.error('Error fetching user session:', error);
-        router.push('/login');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchUser();
-  }, [router]);
-
-  // Function to refresh user data after updates
+  // Function to refresh user data after updates (now just calls UserContext refreshUser)
   const refreshUserData = async () => {
-    try {
-      const session = await getUserSession();
-      if (session.isLoggedIn && session.user) {
-        setUser(session.user);
-      }
-    } catch (error) {
-      console.error('Error refreshing user data:', error);
-    }
+    await refreshUser();
   };
 
   if (isLoading) {
@@ -67,8 +40,10 @@ export default function ProfilePage() {
   }
 
   if (!user) {
-    return null; // Router will redirect
+    // UserContext will handle redirect to login
+    return null;
   }
+  
   const renderTabContent = () => {
     switch (activeTab) {
       case 'profile':

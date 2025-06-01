@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import TextInput from '@/components/ui/form-fields/text-input';
 import { Button } from '@/components/ui/form-fields/button';
+import { useUser } from '@/lib/contexts/UserContext';
 import { Lock, Eye, EyeOff, Shield, Check, X } from 'lucide-react';
 
 interface ChangePasswordFormProps {
@@ -25,6 +26,10 @@ const ChangePasswordForm: React.FC<ChangePasswordFormProps> = ({ onPasswordChang
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState<'success' | 'error' | ''>('');
+  
+  // Get UserContext to update global user state
+  const { refreshUser } = useUser();
+  
   const [showPasswords, setShowPasswords] = useState({
     current: false,
     new: false,
@@ -166,9 +171,7 @@ const ChangePasswordForm: React.FC<ChangePasswordFormProps> = ({ onPasswordChang
         }),
       });
 
-      const data = await response.json();
-
-      if (response.ok) {
+      const data = await response.json();      if (response.ok) {
         setMessage('Password changed successfully!');
         setMessageType('success');
         setTimeout(() => setMessage(''), 2000);
@@ -179,8 +182,9 @@ const ChangePasswordForm: React.FC<ChangePasswordFormProps> = ({ onPasswordChang
           confirmPassword: ''
         });
         
-        // Notify parent component
-        onPasswordChanged();
+        // Update both local state and global UserContext
+        onPasswordChanged(); // Notify parent component
+        await refreshUser(); // Refresh global user data for navigation
       } else {
         setMessage(data.error || 'Failed to change password');
         setMessageType('error');

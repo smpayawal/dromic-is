@@ -49,28 +49,24 @@ export async function PATCH(request: NextRequest) {
 
     // Parse and validate request body
     const body = await request.json();
-    const { updateType, ...data } = body;
-
-    if (updateType === 'profile') {
+    const { updateType, ...data } = body;    if (updateType === 'profile') {
       // Update profile information
-      const validatedData = updateProfileSchema.parse(data);      // Log the activity first
-      await query(
-        `INSERT INTO activity_log (
-          account_id, activity_type, activity_category, target_table, 
-          target_id, action_details, ip_address, device_info, status
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
-        [
-          payload.userId,
-          'update',
-          'user',
-          'profile',
-          payload.userId,
-          JSON.stringify({ message: 'Profile information updated' }),
-          request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || '::1',
-          request.headers.get('user-agent') || 'Unknown',
-          'success'
-        ]
-      );      // Update profile
+      const validatedData = updateProfileSchema.parse(data);
+
+      // Get current profile state before update for audit trail
+      const beforeStateResult = await query(
+        `SELECT 
+          firstname, lastname, middlename, phone_number,
+          address, job_title, division, region,
+          province, city, barangay, date_of_birth
+        FROM profile 
+        WHERE id = (SELECT "profileId" FROM account WHERE id = $1)`,
+        [payload.userId]
+      );
+
+      const beforeState = beforeStateResult.rows[0] || null;
+
+      // Update profile with RETURNING clause to get updated state
       const updateResult = await query(
         `UPDATE profile SET 
           firstname = $1, lastname = $2, middlename = $3, phone_number = $4,
@@ -79,7 +75,9 @@ export async function PATCH(request: NextRequest) {
         WHERE id = (
           SELECT "profileId" FROM account WHERE id = $13
         )
-        RETURNING id`,
+        RETURNING id, firstname, lastname, middlename, phone_number,
+                  address, job_title, division, region,
+                  province, city, barangay, date_of_birth`,
         [
           validatedData.firstName,
           validatedData.lastName,
@@ -95,21 +93,45 @@ export async function PATCH(request: NextRequest) {
           validatedData.dateOfBirth,
           payload.userId
         ]
-      );
-
-      if (updateResult.rows.length === 0) {
+      );      if (updateResult.rows.length === 0) {
         return NextResponse.json(
           { error: 'Profile not found or update failed' },
           { status: 404 }
         );
       }
 
+      const afterState = updateResult.rows[0];
+
+      // Log the activity with before/after state for audit trail
+      await query(
+        `INSERT INTO activity_log (
+          account_id, activity_type, activity_category, target_table, 
+          target_id, action_details, before_state, after_state,
+          ip_address, device_info, status
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
+        [
+          payload.userId,
+          'update',
+          'user',
+          'profile',
+          payload.userId,
+          JSON.stringify({ 
+            message: 'Profile information updated',
+            updated_fields: Object.keys(validatedData),
+            changes_count: Object.keys(validatedData).length
+          }),
+          JSON.stringify(beforeState),
+          JSON.stringify(afterState),
+          request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || '::1',
+          request.headers.get('user-agent') || 'Unknown',
+          'success'
+        ]
+      );
+
       return NextResponse.json(
         { message: 'Profile updated successfully' },
         { status: 200 }
-      );
-
-    } else if (updateType === 'account') {
+      );    } else if (updateType === 'account') {
       // Update account information (username/email)
       const validatedData = updateAccountSchema.parse(data);
 
@@ -124,38 +146,57 @@ export async function PATCH(request: NextRequest) {
           { error: 'Username or email already exists' },
           { status: 409 }
         );
-      }      // Log the activity
+      }
+
+      // Get current account state before update for audit trail
+      const beforeStateResult = await query(
+        'SELECT username, email FROM account WHERE id = $1',
+        [payload.userId]
+      );
+
+      const beforeState = beforeStateResult.rows[0] || null;
+
+      // Update account with RETURNING clause to get updated state
+      const updateResult = await query(
+        `UPDATE account SET 
+          username = $1, email = $2
+        WHERE id = $3
+        RETURNING id, username, email`,
+        [validatedData.username, validatedData.email, payload.userId]
+      );      if (updateResult.rows.length === 0) {
+        return NextResponse.json(
+          { error: 'Account not found or update failed' },
+          { status: 404 }
+        );
+      }
+
+      const afterState = updateResult.rows[0];
+
+      // Log the activity with before/after state for audit trail
       await query(
         `INSERT INTO activity_log (
           account_id, activity_type, activity_category, target_table, 
-          target_id, action_details, ip_address, device_info, status
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+          target_id, action_details, before_state, after_state,
+          ip_address, device_info, status
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
         [
           payload.userId,
           'update',
           'account',
           'account',
           payload.userId,
-          JSON.stringify({ message: 'Account information updated' }),
+          JSON.stringify({ 
+            message: 'Account information updated',
+            updated_fields: Object.keys(validatedData),
+            changes_count: Object.keys(validatedData).length
+          }),
+          JSON.stringify(beforeState),
+          JSON.stringify(afterState),
           request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || '::1',
           request.headers.get('user-agent') || 'Unknown',
           'success'
         ]
-      );      // Update account
-      const updateResult = await query(
-        `UPDATE account SET 
-          username = $1, email = $2
-        WHERE id = $3
-        RETURNING id`,
-        [validatedData.username, validatedData.email, payload.userId]
       );
-
-      if (updateResult.rows.length === 0) {
-        return NextResponse.json(
-          { error: 'Account not found or update failed' },
-          { status: 404 }
-        );
-      }
 
       return NextResponse.json(
         { message: 'Account updated successfully' },
