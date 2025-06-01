@@ -29,7 +29,7 @@ hotfix/xxx            ← 🚨 Emergency production fixes
 
 | Environment | Branch | Purpose | Documentation | Deployment |
 |-------------|--------|---------|---------------|------------|
-| **Development** | `development` | Feature integration, testing new code | ✅ Full `/docs` access | Automatic on push |
+| **Development** | `develop` | Feature integration, testing new code | ✅ Full `/docs` access | Automatic on push |
 | **Staging** | `staging` | UAT, pre-production validation | ❌ Docs excluded from deployment | Manual trigger |
 | **Production** | `main` | Live system for end users | ❌ Docs excluded from deployment | Approval required |
 
@@ -66,13 +66,13 @@ hotfix/critical-data-corruption-fix
 # Daily synchronization for active feature branches
 git checkout feature/my-feature
 git fetch upstream
-git rebase upstream/development
+git rebase upstream/develop
 
 # Weekly synchronization for long-running features
-git checkout development
-git pull upstream development
+git checkout develop
+git pull upstream develop
 git checkout feature/my-feature
-git rebase development
+git rebase develop
 ```
 
 #### ❌ AVOID: Common Branch Mistakes
@@ -82,7 +82,7 @@ git checkout main  # ❌ Wrong base branch
 git checkout -b feature/new-feature
 
 # Don't work directly on shared branches
-git checkout development  # ❌ No direct commits
+git checkout develop  # ❌ No direct commits
 # Make changes directly...
 
 # Don't create overly broad feature branches
@@ -93,9 +93,9 @@ git checkout -b feature/everything-new  # ❌ Too broad
 
 #### ✅ DO: Follow Proper Development Cycle
 ```bash
-# 1. Start from development branch
-git checkout development
-git pull upstream development
+# 1. Start from develop branch
+git checkout develop
+git pull upstream develop
 
 # 2. Create focused feature branch
 git checkout -b feature/incident-status-tracking
@@ -342,8 +342,8 @@ https://dromic-is.gov.ph/docs/          # ❌ Returns 404
 
 ```bash
 # 1. Preparation
-git checkout development
-git pull upstream development
+git checkout develop
+git pull upstream develop
 
 # 2. Create feature branch
 git checkout -b feature/user-notification-system
@@ -366,8 +366,8 @@ git push -u origin feature/user-notification-system
 # Create PR to development branch
 
 # 6. After approval and merge
-git checkout development
-git pull upstream development
+git checkout develop
+git pull upstream develop
 git branch -d feature/user-notification-system
 ```
 
@@ -397,9 +397,9 @@ git push origin main
 git push origin v1.2.1
 
 # 5. Merge back to other branches
-git checkout development
+git checkout develop
 git merge main
-git push upstream development
+git push upstream develop
 
 git checkout staging
 git merge main
@@ -417,7 +417,7 @@ git checkout staging
 git pull upstream staging
 
 # 2. Merge from development
-git merge development
+git merge develop
 git push upstream staging
 
 # 3. Automated deployment triggers
@@ -476,7 +476,7 @@ npm run test:integration -- --env=staging
 
 ### Security Checklist by Branch
 
-**Development Branch (`development`)**
+**Development Branch (`develop`)**
 - [ ] Code passes security linting
 - [ ] No hardcoded credentials
 - [ ] Input validation implemented
@@ -605,8 +605,8 @@ npm run build:production  # Full optimization
 
 case $1 in
   "new-feature")
-    git checkout development
-    git pull upstream development
+    git checkout develop
+    git pull upstream develop
     git checkout -b feature/$2
     echo "✅ Created feature branch: feature/$2"
     ;;
@@ -614,7 +614,7 @@ case $1 in
   "prepare-staging")
     git checkout staging
     git pull upstream staging
-    git merge development
+    git merge develop
     git push upstream staging
     echo "✅ Staging updated with latest development changes"
     ;;
