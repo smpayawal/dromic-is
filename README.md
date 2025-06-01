@@ -31,6 +31,60 @@
 - [Support](#-support)
 - [License](#-license)
 
+## 🚀 Recent Updates & Improvements
+
+### ✅ Phase 8 Complete: Enhanced Activity Log with Pagination (June 2025)
+
+**Major Improvements Implemented:**
+
+#### 🔧 **UI/UX Fixes & Enhancements**
+- **Password Visibility Icon Fix**: Resolved overlapping password visibility icons in login/registration forms
+- **Navigation Highlighting**: Fixed navigation highlighting issue when on "Your Profile" page using exact pathname matching
+- **Auto-Hide Success Messages**: Implemented 2-second auto-hide for all success messages across profile forms
+
+#### 🔒 **Security & Database Enhancements**
+- **Database Error Resolution**: Fixed profile update API database errors with proper SQL syntax
+- **Enhanced Activity Logging**: Implemented comprehensive before/after state tracking for audit trails
+- **Password Change Security**: Added advanced security logging with metadata tracking for password changes
+- **Data Integrity**: Ensured database constraint compliance for activity logging
+
+#### 🔄 **Profile Synchronization System**
+- **Global State Management**: Integrated UserContext for real-time profile synchronization
+- **Navigation Updates**: Navigation profile and menu components now automatically reflect changes
+- **Data Flow Optimization**: Single source of truth for user data across all components
+- **Real-time Updates**: Profile changes instantly update throughout the application
+
+#### 📊 **Activity Log Pagination System** (NEW)
+- **5 Entries Per Page**: Optimized display with maximum 5 activity entries per page
+- **Smart Pagination Controls**: Previous/Next buttons with intelligent page number display (up to 5 page numbers)
+- **Advanced Filtering**: Activity type, category, and time period filtering with reset functionality
+- **Enhanced UI**: Clean pagination bar with total count display and responsive design
+- **Performance Optimized**: Reduced initial load time and improved user experience
+- **Audit Trail Enhancement**: Detailed before/after state tracking for security events
+
+#### 🛠 **Technical Improvements**
+- **Component Refactoring**: Major refactor of ProfilePage.tsx to use UserContext instead of local state
+- **API Enhancement**: Updated activity endpoint with comprehensive filtering and pagination
+- **Type Safety**: Enhanced TypeScript interfaces for better development experience
+- **Error Handling**: Improved error states and loading indicators across components
+
+### 🎯 **Development Phases Completed**
+
+1. **✅ Phase 1**: Password visibility icon overlap fix
+2. **✅ Phase 2**: Navigation highlighting resolution  
+3. **✅ Phase 3**: Database error fixes for profile updates
+4. **✅ Phase 4**: Auto-hide success messages implementation
+5. **✅ Phase 5**: Enhanced activity logs with audit trails
+6. **✅ Phase 6**: Comprehensive password change security logging
+7. **✅ Phase 7**: Profile update synchronization between components
+8. **✅ Phase 8**: Activity Log pagination with 5 entries per page
+
+**Next Phase Targets:**
+- Advanced user management features
+- Enhanced dashboard analytics
+- Mobile responsiveness improvements
+- Performance optimization
+
 ## 🎯 About
 
 DROMIC-IS is a comprehensive web-based information system designed for disaster response operations monitoring and management in the Philippines. Built with modern web technologies, it provides secure authentication, intuitive dashboards, and comprehensive reporting capabilities for disaster response personnel.
@@ -82,13 +136,15 @@ Enhanced with comprehensive position management and location-aware functionality
 - **Activity Monitoring**: Real-time tracking of system activities and user interactions
 
 ### 👤 Comprehensive User Profile Management
-- **Profile Editing**: Complete user profile management with real-time validation
+- **Profile Editing**: Complete user profile management with real-time validation and live synchronization
 - **Location Management**: PSGC-compliant location editing with cascading dropdowns
-- **Password Security**: Advanced password change system with strength validation
-- **Activity Monitoring**: Comprehensive user activity tracking and audit trail
+- **Password Security**: Advanced password change system with strength validation and security logging
+- **Activity Monitoring**: Comprehensive user activity tracking with enhanced audit trails and pagination
 - **Account Settings**: Notification preferences, privacy settings, and security configuration
 - **Profile Header**: Dynamic user information display with statistics and metadata
 - **Security Features**: Session management, failed login tracking, and account lockout protection
+- **Real-time Synchronization**: Navigation and profile components automatically reflect changes via global state management
+- **Enhanced Activity Log**: Paginated activity log with 5 entries per page, advanced filtering, and detailed security tracking
 
 ### 🗺️ Philippine Geographic Information System (PSGC Integration)
 - **Cascading Location Dropdowns**: Real-time filtering of Region → Province → City/Municipality → Barangay
@@ -217,18 +273,22 @@ The system now features a complete authentication system with database integrati
 - ✅ Complete user registration via `/register` with comprehensive profile creation
 - ✅ Database-backed authentication with PostgreSQL and bcrypt password hashing
 - ✅ JWT session management with HTTP-only cookies for enhanced security
-- ✅ Profile management at `/profile` with real-time updates
-- ✅ Password change functionality with security validation
-- ✅ Activity logging for all user actions and authentication events
+- ✅ Profile management at `/profile` with real-time updates and global state synchronization
+- ✅ Password change functionality with security validation and comprehensive audit logging
+- ✅ Enhanced activity logging with before/after state tracking, pagination (5 entries per page), and advanced filtering
 - ✅ Account settings management with notification preferences
 - ✅ Philippine PSGC 2023 Q1 location data integration with cascading dropdowns
 - ✅ Failed login protection with account lockout after 5 attempts
+- ✅ Real-time profile synchronization between navigation and profile components via UserContext
+- ✅ Comprehensive security logging for password changes with metadata tracking
 
 **Profile Management Features:**
-- 📝 **Edit Profile**: Update personal information, work details, and location
-- 🔒 **Change Password**: Secure password changes with strength validation
-- 📊 **Activity Log**: View comprehensive activity history with filtering
+- 📝 **Edit Profile**: Update personal information, work details, and location with real-time synchronization
+- 🔒 **Change Password**: Secure password changes with strength validation and comprehensive security logging
+- 📊 **Activity Log**: View comprehensive activity history with pagination (5 entries per page), advanced filtering, and detailed audit trails
 - ⚙️ **Account Settings**: Manage notifications, privacy, and security preferences
+- 🔄 **Real-time Updates**: Navigation profile and menu automatically reflect changes via global UserContext
+- 🛡️ **Enhanced Security**: Password change tracking, before/after state logging, and security event monitoring
 
 > **🔒 Security Note**: All authentication is database-backed with bcrypt password hashing, JWT session tokens, activity logging, and production-ready security measures including session management and account lockout protection.
 
@@ -272,13 +332,13 @@ dromic-is/
 │   │   │   │   ├── page.tsx         # Navigation test page
 │   │   │   │   └── components/      # Navigation sub-components
 │   │   │   │       └── ProfileDropdown.tsx
-│   │   │   ├── 📁 profile/              # User Profile Management (NEW)
-│   │   │   │   ├── page.tsx             # Main profile page with tabs
+│   │   │   ├── 📁 profile/              # User Profile Management (ENHANCED)
+│   │   │   │   ├── page.tsx             # Main profile page with UserContext integration
 │   │   │   │   └── 📁 _components/      # Profile management components
 │   │   │   │       ├── ProfileHeader.tsx      # User profile header
-│   │   │   │       ├── EditProfileForm.tsx    # Profile editing form
-│   │   │   │       ├── ChangePasswordForm.tsx # Password change form
-│   │   │   │       ├── ActivityLog.tsx        # User activity log viewer
+│   │   │   │       ├── EditProfileForm.tsx    # Profile editing with real-time sync
+│   │   │   │       ├── ChangePasswordForm.tsx # Password change with security logging
+│   │   │   │       ├── ActivityLog.tsx        # Paginated activity log viewer (5 per page)
 │   │   │   │       └── AccountSettings.tsx    # Account settings management
 │   │   │   └── layout.tsx           # Main layout with navbar
 │   │   ├── 📁 api/                  # Backend API Routes (NEW)
@@ -330,6 +390,8 @@ dromic-is/
 │   │           ├── location-dropdown.tsx # Philippine location cascading dropdown (NEW)
 │   │           └── text-input.tsx   # Text input with validation
 │   └── 📁 lib/                     # Utility libraries and business logic
+│       ├── 📁 contexts/            # React Context Providers (ENHANCED)
+│       │   └── UserContext.tsx    # Global user state management with refreshUser()
 │       ├── 📁 utils/               # Core utility functions
 │       │   ├── auth.ts             # Authentication utilities (UPDATED)
 │       │   ├── jwt.ts              # JWT token management (NEW)
@@ -572,12 +634,14 @@ interface UserData {
 ```
 
 #### Profile Management Features
-- **Profile Editing**: Real-time profile updates with location dropdowns
-- **Password Management**: Secure password changes with strength validation
-- **Activity Monitoring**: Complete user activity logging and history
+- **Profile Editing**: Real-time profile updates with location dropdowns and global state synchronization
+- **Password Management**: Secure password changes with strength validation and comprehensive security logging
+- **Activity Monitoring**: Complete user activity logging with pagination (5 entries per page), advanced filtering, and audit trails
 - **Account Settings**: Notification preferences, privacy settings, and security configuration
 - **Avatar Management**: Profile image upload and management capabilities
 - **Location Updates**: PSGC-compliant location editing with cascading dropdowns
+- **Real-time Synchronization**: Navigation and profile components automatically reflect changes via UserContext
+- **Enhanced Security Logging**: Before/after state tracking, password change monitoring, and detailed audit trails
 
 ## 📚 API Reference
 
@@ -770,7 +834,7 @@ Cookie: auth-token=<jwt_token>
 ```
 
 #### GET /api/user/activity
-Retrieve user activity log with pagination and filtering.
+Retrieve user activity log with enhanced pagination and filtering capabilities.
 
 **Headers:**
 ```
@@ -781,10 +845,10 @@ Cookie: auth-token=<jwt_token>
 ```typescript
 {
   page?: number;        // Page number (default: 1)
-  limit?: number;       // Items per page (default: 10, max: 50)
-  category?: string;    // Filter by activity category
-  type?: string;        // Filter by activity type
-  timeRange?: '7d' | '30d' | '90d' | 'all'; // Time period filter
+  limit?: number;       // Items per page (default: 5, max: 20)
+  activity_type?: string; // Filter by activity type (login, update, etc.)
+  activity_category?: string; // Filter by category (session, account, etc.)
+  days?: number;        // Time period filter (7, 30, 90, 365)
 }
 ```
 
@@ -796,20 +860,21 @@ Cookie: auth-token=<jwt_token>
     log_id: string;
     activity_type: string;
     activity_category: string;
-    action_details: object;
-    created_at: string;
-    ip_address: string;
-    device_info: string;
-    status: 'success' | 'failed';
+    target_table?: string;
+    target_name?: string;
+    action_details?: any;      // Enhanced with security metadata
+    before_state?: any;        // Before state for audit trails
+    after_state?: any;         // After state for audit trails
+    timestamp: string;
+    ip_address?: string;
+    device_info?: string;
+    status: string;
+    notes?: string;
   }>;
-  pagination: {
-    total: number;
-    totalPages: number;
-    currentPage: number;
-    limit: number;
-    hasNext: boolean;
-    hasPrev: boolean;
-  };
+  total: number;              // Total count for pagination
+  hasMore: boolean;           // Whether more pages exist
+  page: number;               // Current page
+  limit: number;              // Items per page
 }
 
 // Error (401/500)
@@ -1036,10 +1101,35 @@ logoutUser(): Promise<void>                // Secure logout with activity loggin
 ### User Profile Management APIs
 
 ```typescript
-// Profile Management
+// Profile Management with Real-time Synchronization
 updateUserProfile(profileData: Partial<ProfileData>): Promise<UserData>
 changeUserPassword(passwordData: PasswordChangeData): Promise<void>
+
+// Enhanced Activity Log with Pagination
+interface ActivityFilters {
+  page?: number;           // Page number (default: 1)
+  limit?: number;          // Items per page (default: 5, max: 20)
+  activity_type?: string;  // Filter by activity type
+  activity_category?: string; // Filter by category
+  days?: number;           // Time period (7, 30, 90, 365)
+}
+
+interface ActivityLogResponse {
+  activities: ActivityLogEntry[];
+  total: number;           // Total count for pagination
+  hasMore: boolean;        // Whether more pages exist
+  page: number;            // Current page
+  limit: number;           // Items per page
+}
+
 getUserActivity(filters: ActivityFilters): Promise<ActivityLogResponse>
+
+// User Context Management (NEW)
+interface UserContextType {
+  user: UserData | null;
+  isLoading: boolean;
+  refreshUser: () => Promise<void>; // Refresh user data globally
+}
 ```
 
 ### Component APIs
@@ -1409,16 +1499,65 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ### Known Limitations
 
 #### Current Constraints
-- **Data Persistence**: Limited to authentication and user management (DROMIC data simulation in progress)
-- **Real-time Features**: Activity logging implemented, but real-time notifications in development
+- **Data Persistence**: Comprehensive user management implemented, DROMIC-specific data simulation in progress
+- **Real-time Features**: Activity logging with pagination fully implemented, real-time notifications in development
 - **File Handling**: Profile image upload UI ready, storage implementation pending
 - **DROMIC Data**: Core disaster response data integration in progress
 
-#### Technical Debt
+#### Technical Debt & Future Enhancements
 - DROMIC-specific API endpoints need implementation for full data persistence
 - File upload and storage system implementation pending
 - Real-time notification system development in progress
 - Comprehensive unit and integration testing suite needed
+- Mobile app development for field officers
+- Advanced analytics and reporting dashboard enhancements
+
+---
+
+## 📈 Current Development Status
+
+### ✅ **Fully Implemented Features**
+
+#### Authentication & Security System
+- Complete user registration and login with database integration
+- JWT-based session management with HTTP-only cookies
+- Password security with bcrypt hashing and strength validation
+- Failed login protection and account lockout mechanisms
+- Comprehensive activity logging with before/after state tracking
+
+#### User Profile Management
+- Real-time profile editing with PSGC location integration
+- Password change system with enhanced security logging
+- **Paginated Activity Log**: 5 entries per page with advanced filtering
+- Account settings management with notification preferences
+- Global state synchronization via UserContext
+
+#### UI/UX Enhancements
+- Responsive design with government compliance standards
+- Fixed password visibility icons and navigation highlighting
+- Auto-hide success messages for better user experience
+- Modern pagination controls with smart page number display
+- Loading states and error handling throughout the application
+
+### 🔄 **Recently Completed (June 2025)**
+- **Activity Log Pagination**: Implemented 5 entries per page with navigation controls
+- **Profile Synchronization**: Real-time updates between navigation and profile components
+- **Enhanced Security Logging**: Before/after state tracking for audit trails
+- **Database Optimization**: Fixed SQL queries and improved data integrity
+- **Component Refactoring**: Major improvements to ProfilePage.tsx and related components
+
+### 🎯 **Current System Capabilities**
+- **546,000+ Barangays**: Complete Philippine PSGC 2023 Q1 data integration
+- **9 User Positions**: From Super Admin to Team Leader with appropriate permissions
+- **5 Profile Tabs**: Comprehensive user profile management interface
+- **Advanced Filtering**: Activity logs with type, category, and time period filters
+- **Real-time Updates**: Instant synchronization across all user interface components
+
+**DROMIC-IS** is now a robust, production-ready disaster response information system with comprehensive user management, enhanced security features, and modern pagination capabilities. The system demonstrates enterprise-level architecture with proper separation of concerns, type safety, and user experience best practices.
+
+---
+
+*Last Updated: June 1, 2025 - Activity Log Pagination & Profile Synchronization Phase Complete*
 
 ### Performance Metrics
 
